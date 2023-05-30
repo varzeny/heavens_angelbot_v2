@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Manage Unit</title>
+
+    </head>
+
+    <body>
+        <!-- 네비게이션 -->
+        <div id="navi" style="border: 4px solid black; padding: 4px;">
+            <label>NAVI</label>
+
+            <a href="/manageUnit"><button>유닛 관리</button></a>
+            <button>재고 관리</button>
+        </div>
+
+        <!-- 몸통 -->
+        <div style="display: flex;">
+            <div style="flex: 5; border: 4px solid black; padding: 4px;">
+                <label>유닛 등록</label><br>
+                <input id="type" type="text" value="type"><br>
+                <input id="name" type="text" value="name"><br>
+                <input id="ip" type="text" value="ip"><br>
+                <input id="port" type="text" value="port"><br>
+                <input id="memo" type="text" value="memo"><br>
+                <button onclick="pb_registering()">등록하기</button>
+            </div>
+
+            <div style="flex: 5; border: 4px solid black; padding: 4px;">
+
+            </div>
+        </div>
+
+        <script>
+
+            async function pb_registering(){
+                let data = {
+                    type:document.getElementById("type").value,
+                    name:document.getElementById("name").value,
+                    ip:document.getElementById("ip").value,
+                    port:document.getElementById("port").value,
+                    memo:document.getElementById("memo").value
+                };
+
+                try{
+                    await fetch("/pb_registering",{
+                        method:"POST",
+                        headers:{"Content-Type":"application/json"},
+                        body:JSON.stringify(data)
+                    });
+                }
+                catch(error){
+                    console.error("Error:",error);
+                }
+            }
+        </script>
+
+    </body>
+</html>
