@@ -22,13 +22,42 @@
                 <input id="name" type="text" value="name"><br>
                 <input id="ip" type="text" value="ip"><br>
                 <input id="port" type="text" value="port"><br>
-                <input id="memo" type="text" value="memo"><br>
                 <button onclick="pb_registering()">등록하기</button>
             </div>
 
             <div style="flex: 5; border: 4px solid black; padding: 4px;">
+                <label>활성유닛</label><br>
+                <div id="activeUnit" style="border: 4px solid black; padding: 4px;">
+
+                </div>
+
+                <label>비활성유닛</label><br>
+                <div id="deactiveUnit" style="border: 4px solid black; padding: 4px;">
+
+                </div>
 
             </div>
+            
+        </div>
+
+        <div style="display:flex; border: 4px solid black; padding: 4px;">
+            <div style="flex:2; border: 4px solid black; padding: 4px;">
+                <label id="id">id</label><br>
+                <label type="type">type</label><br>
+                <label name="name">name</label><br>
+                <label ip="ip">ip</label><br>
+                <label port="port">port</label><br>
+            </div>
+
+            <div style="flex:8; border: 4px solid black; padding: 4px;">
+                <label activate="activate">activate</label><br>
+                <button>activate</button>
+
+            </div>
+
+
+
+
         </div>
 
         <script>
@@ -39,7 +68,6 @@
                     name:document.getElementById("name").value,
                     ip:document.getElementById("ip").value,
                     port:document.getElementById("port").value,
-                    memo:document.getElementById("memo").value
                 };
 
                 try{
@@ -53,6 +81,36 @@
                     console.error("Error:",error);
                 }
             }
+
+            async function showUnits(){
+                let res = await fetch("/getUnits");
+                let data = await res.json();
+
+                let activeUnitDiv = document.getElementById("activeUnit");
+                let deactiveUnitDiv = document.getElementById("deactiveUnit");
+
+                // Clear previous data
+                activeUnitDiv.innerHTML = "";
+                deactiveUnitDiv.innerHTML = "";
+
+                for(let unit of data){
+                    let label = document.createElement("label");
+                    label.innerText = unit.name + " ";
+                    label.onclick = async function(){
+                        console.log(unit.id, unit.type, unit.name)
+                    }
+                    if(unit.active){
+                        activeUnitDiv.appendChild(label);
+                    } else {
+                        deactiveUnitDiv.appendChild(label);
+                    }
+                }
+            }
+
+
+
+            setInterval(showUnits,1000);
+
         </script>
 
     </body>
