@@ -22,7 +22,7 @@
                 <input id="name" type="text" value="name"><br>
                 <input id="ip" type="text" value="ip"><br>
                 <input id="port" type="text" value="port"><br>
-                <button onclick="pb_registering()">등록하기</button>
+                <button onclick="pb_dbCreate()">등록하기</button>
             </div>
 
             <div style="flex: 5; border: 4px solid black; padding: 4px;">
@@ -42,16 +42,16 @@
 
         <div style="display:flex; border: 4px solid black; padding: 4px;">
             <div style="flex:2; border: 4px solid black; padding: 4px;">
-                <label id="id">id</label><br>
-                <label type="type">type</label><br>
-                <label name="name">name</label><br>
-                <label ip="ip">ip</label><br>
-                <label port="port">port</label><br>
+                <label id="lbl_id">id</label><br>
+                <label id="lbl_type">type</label><br>
+                <label id="lbl_name">name</label><br>
+                <label id="lbl_ip">ip</label><br>
+                <label id="lbl_port">port</label><br>
             </div>
 
             <div style="flex:8; border: 4px solid black; padding: 4px;">
-                <label activate="activate">activate</label><br>
-                <button>activate</button>
+                <label id="lbl_active">active</label><br>
+                <button id="pb_activate">activate unit</button>
 
             </div>
 
@@ -62,7 +62,7 @@
 
         <script>
 
-            async function pb_registering(){
+            async function pb_dbCreate(){
                 let data = {
                     type:document.getElementById("type").value,
                     name:document.getElementById("name").value,
@@ -71,7 +71,7 @@
                 };
 
                 try{
-                    await fetch("/pb_registering",{
+                    await fetch("/pb_dbCreate",{
                         method:"POST",
                         headers:{"Content-Type":"application/json"},
                         body:JSON.stringify(data)
@@ -82,8 +82,8 @@
                 }
             }
 
-            async function showUnits(){
-                let res = await fetch("/getUnits");
+            async function dbRead(){
+                let res = await fetch("/dbRead");
                 let data = await res.json();
 
                 let activeUnitDiv = document.getElementById("activeUnit");
@@ -94,22 +94,33 @@
                 deactiveUnitDiv.innerHTML = "";
 
                 for(let unit of data){
-                    let label = document.createElement("label");
-                    label.innerText = unit.name + " ";
-                    label.onclick = async function(){
-                        console.log(unit.id, unit.type, unit.name)
-                    }
+                    let pb = document.createElement("button");
+                    pb.innerHTML = unit.name;
+                    pb.value = JSON.stringify(unit)
+                    pb.onclick = dbReadSelect
                     if(unit.active){
-                        activeUnitDiv.appendChild(label);
+                        activeUnitDiv.appendChild(pb);
                     } else {
-                        deactiveUnitDiv.appendChild(label);
+                        deactiveUnitDiv.appendChild(pb);
                     }
                 }
             }
 
+            async function dbReadSelect(){
+                unit = JSON.parse(this.value)
+                document.getElementById("lbl_id").innerHTML="id : "+unit.id
+                document.getElementById("lbl_type").innerHTML="type : "+unit.type
+                document.getElementById("lbl_name").innerHTML="name : "+unit.name
+                document.getElementById("lbl_ip").innerHTML="ip : "+unit.ip
+                document.getElementById("lbl_port").innerHTML="port : "+unit.port
+                document.getElementById("lbl_active").innerHTML="active : "+unit.active
+                // document.getElementById("pb_activate").onclick=
+
+            }
 
 
-            setInterval(showUnits,1000);
+
+            setInterval(dbRead,1000);
 
         </script>
 

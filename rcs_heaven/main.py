@@ -25,15 +25,20 @@ class Angelbot(Base):
     z = Column(Integer)
 
 # fastapi #############################################################
-import asyncio
+
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+@app.websocket("/wsEndpoint")
+async def wsEndpoint(websocket:WebSocket):
+    await websocket.accept()
+    
 
 
 
@@ -47,7 +52,7 @@ async def showPage_manageUnit():
     return FileResponse("page/manageUnit.html")
 
 
-@app.post("/pb_registering")
+@app.post("/pb_dbCreate")
 async def registeUnit(request:Request):
     data = await request.json()
     print(data)
@@ -72,8 +77,8 @@ async def registeUnit(request:Request):
     return {"message": "Angelbot registered successfully"}
 
 
-@app.get("/getUnits")
-async def getUnits():
+@app.get("/dbRead")
+async def dbRead():
     async with async_session() as session:
         result = await session.execute(select(Angelbot))
         units = result.scalars().all()
