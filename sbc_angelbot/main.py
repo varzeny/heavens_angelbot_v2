@@ -32,11 +32,14 @@ class Sbc:
 
         await self.queue.put(b"init")
         await self.queue.put(b"test1")
+        # await self.queue.put(b"test2")
 
 
         self.part["mobile"] = model_part.Part_Mobile(self.queue, "mobile", ("10.10.10.10",7171))
-        self.part["cobot"] = model_part.Part_Cobot(self.queue, "cobot", ("192.168.215.101",502))
+        self.part["cobot"] = model_part.Part_Cobot(self.queue, "cobot", ("192.168.1.2",502))
 
+        # 큐체크
+        print("큐 체크 시작")
         while True:
             msg = await self.queue.get()
             if msg == b"stop":
@@ -44,19 +47,23 @@ class Sbc:
             elif msg == b"init":
                 self.loop.create_task(self.part["mobile"].connect())
                 self.loop.create_task(self.part["cobot"].connect())
-            elif msg == b"test1":
-                print("haha")
                 await asyncio.sleep(2)
-                await self.part["mobile"].sendMsg("say hahaha")
+            elif msg == b"test1":
+                await self.part["mobile"].sendMsg("say part mobile is ready")
+                await asyncio.sleep(1)
+                tcp = await self.part["cobot"].readRgs(7001,12)
+                self.part["cobot"].tcp["x"]=tcp[0]
+                self.part["cobot"].tcp["y"]=tcp[1]
+                self.part["cobot"].tcp["z"]=tcp[2]
+                self.part["cobot"].tcp["rx"]=tcp[3]
+                self.part["cobot"].tcp["ry"]=tcp[4]
+                self.part["cobot"].tcp["rz"]=tcp[5]
+                print("cobot이 준비됨\n현재tcp :",self.part["cobot"].tcp)
+            elif msg == b"test2":
+                await self.part["cobot"].readRgs(7001,12)
                 
-            print(msg)
-            print()
 
         print("sbc의 main이 정지됨")
-
-    ##################################################################
-    async def connect(self,addr):
-        reader, writer = asyncio.open_connection(addr[0],addr[1])
 
     ##################################################################
 
@@ -72,7 +79,6 @@ class Sbc:
         print("서버가 정지함")
 
     async def handle_client(self, reader, writer):
-
         while True:
             msg = await reader.read(1024)
             if not msg:
