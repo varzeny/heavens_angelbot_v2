@@ -90,7 +90,7 @@ class Part_Cobot(Part):
             self.reader, self.writer = await asyncio.open_connection(self.addr[0],self.addr[1])
             print(f"{self.name} 에 접속 성공")
         except:
-            print(f"{self.addr} 에 접속 실패")
+            print(f"{self.name} 에 접속 실패")
         
         
     async def readRgs(self,rg,n):
