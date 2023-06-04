@@ -1,26 +1,20 @@
-import asyncio
+import json
 
 
-async def A():
-    print("a 시작됨")
-    asyncio.create_task( B() )
-    print("a 종료됨")
 
-async def B():
-    print("b 시작됨")
+recv = "asd:fasdfasdfsa"
 
-    print("b 종료됨")
 
-async def main():
-    print("main 시작됨")
-    asyncio.create_task( A() )
+try:
+    msg = json.loads( recv )    # 문자열을 딕셔너리로
 
-    while True:
-        print( asyncio.all_tasks() )
-        await asyncio.sleep(0.01)
-        
-    print("main 종료됨")
-
-loop = asyncio.get_event_loop()
-loop.create_task( main() )
-loop.run_forever()
+except:
+    msg = {
+        "protocol":17171,
+        "perpose":None,
+        "data":recv,
+        "sender":None
+    }
+    
+finally:
+    print( msg )
