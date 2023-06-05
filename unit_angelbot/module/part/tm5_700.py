@@ -49,13 +49,13 @@ class Manager:
         try:
             print( self.name,"call connect" )
             self.reader, self.writer = await asyncio.open_connection(self.addr[0],self.addr[1])
+            print( self.name,"success connect" )
 
         except Exception as e:
             print( self.name,"error connect\n",e )
 
         finally:
             print( self.name,"return connect" )
-            return
 
 
     async def handle_send(self, functionCode, rgAddr, rgCount, value = None):
@@ -66,14 +66,14 @@ class Manager:
             await self.writer.drain()
             recv = await self.reader.read(1024)
             if functionCode <= 4:   # read 일 경우
-                return recv
-            
+                result = Modbus.decoding(recv)
+                return result
+
         except Exception as e:
             print( self.name,"error handle_send\n",e )
 
         finally:
             print( self.name,"return handle_send" )
-            return
 
 
 if __name__ == "__main__":

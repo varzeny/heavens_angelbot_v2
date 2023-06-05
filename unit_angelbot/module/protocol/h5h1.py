@@ -1,8 +1,12 @@
 import json
 
-class HeavensAngelBot:
+class W5h1:
     '''
     made by Hoa Choi of RobotCampus
+
+        who     when    where   what    how     why     
+        sender  time    recver  data    detail  type
+
     '''
 
     port = 10000
@@ -11,19 +15,19 @@ class HeavensAngelBot:
         pass
 
     @classmethod
-    def encoding( cls, perpose=None, data=None, sender=None ):
+    def encoding( cls, data ):
         try:
-            msg = json.dumps(
-                {
-                    "protocol":cls.port,
-                    "perpose":perpose,
-                    "data":data,
-                    "sender":sender
-                }
-            )
+            msg = json.dumps( data )
 
         except:
-            msg = "fail encoding"
+            msg = json.dumps( {
+                "who":None,
+                "when":None,
+                "where":None,
+                "what":None,
+                "how":None,
+                "why":None
+            } )
             
         finally:
             return msg
@@ -49,3 +53,4 @@ class HeavensAngelBot:
     @classmethod
     def form( cls, recv ):
         pass
+

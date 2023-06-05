@@ -1,4 +1,6 @@
+from datetime import datetime
 
+print( datetime.now().strftime( "%y/%m/%d/%I/%M/%S/%f" ) )
 
 
 class CCC:

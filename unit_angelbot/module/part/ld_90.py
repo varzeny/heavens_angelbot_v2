@@ -2,9 +2,7 @@
 
 
 import asyncio
-
-from module.protocol.heavensangelbot import HeavensAngelBot as protocol_10000
-
+from datetime import datetime # datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" )
 
 
 class Manager:
@@ -16,6 +14,7 @@ class Manager:
         # 후기입력
         self.reader = None
         self.writer = None
+        self.state = None
         self.status = {
             "status":"disconnect",
             "battery":0,
@@ -41,6 +40,8 @@ class Manager:
             await self.writer.drain()
 
             self.task["handle_recv"] = asyncio.get_running_loop().create_task( self.handle_recv() )
+            self.task["listen_mobot"] = asyncio.get_running_loop().create_task( self.listen_mobot() )
+            print( self.name,"succes connect" )
 
         except Exception as e:
             print( self.name,"error connect\n",e )
@@ -52,13 +53,66 @@ class Manager:
             return
 
 
-    async def handle_recv(self):
+    async def listen_mobot(self):
         try:
-            print( self.name,"call handle_recv" )
+            print( self.name,"call listen_mobot" )
+            server_mobot = await asyncio.start_server(
+                self.handle_mobot,
+                "10.10.10.51",
+                7179
+            )
+            await server_mobot.serve_forever()
+            
+        except Exception as e:
+            print( self.name,"error listen_mobot\n",e )
+
+        finally:
+            print( self.name,"return liste_mobot" )
+
+    
+    async def handle_mobot(self,reader,writer):
+        try:
+            print( self.name,"call handle_mobot",writer.get_extra_info("peername") )
             while True:
                 try:
-                    recv = await self.reader.read(1024)
-                    if not recv:
+                    recv_b = await reader.read(1024)
+                    if not recv_b:
+                        break
+                except Exception as e:
+                    print( self.name,"error wait recv\n",e )
+                    continue
+
+                try:
+                    recv = recv_b.decode()
+                    if recv[:6] == "Status":
+                        msg = {
+                            "who":"mobot",
+                            "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                            "where":"mobot",
+                            "what":"status",
+                            "how":recv,
+                            "why":"update"
+                        }
+                        await self.Q_sbc.put( msg )
+
+                except Exception as e:
+                    print( self.name,"error decode recv\n",e )
+                    continue
+
+        except Exception as e:
+            print( self.name,"error handle_status\n",e )
+
+        finally:
+            print( self.name,"return handle_status" )
+
+    
+    async def handle_recv(self):
+        try:
+            print( self.name,"call handle_recv",self.writer.get_extra_info("peername") )
+            while True:
+                try:
+                    recv_b = await self.reader.read(1024)
+                    if not recv_b:
                         break
 
                 except Exception as e:
@@ -66,14 +120,22 @@ class Manager:
                     continue
 
                 try:
-                    msg = protocol_10000.encoding( data=recv, sender="mobile" )
+                    recv = recv_b.decode()
+                    msg = {
+                        "who":"mobot",
+                        "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                        "where":"mobot",
+                        "what":"state",
+                        "how":recv,
+                        "why":"response"
+                    }
 
                 except Exception as e:
-                    print( self.name,"error encoding\n",e )
+                    print( self.name,"error trans dic\n",e )
                     continue
 
                 try:
-                    await self.Q_sbc.put( msg );   print( msg )
+                    await self.Q_sbc.put( msg )
 
                 except Exception as e:
                     print( self.name,"error put queue\n",e )
@@ -96,6 +158,7 @@ class Manager:
             print( self.name,"error handle_send\n",e )
 
         finally:
+            print( self.name,"return handle_send" )
             return
 
 

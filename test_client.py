@@ -1,26 +1,45 @@
-from pymodbus.client import ModbusTcpClient
-import endecode_ieee754 as ed
+import asyncio
+from datetime import datetime
+import json
+
+async def handle_client(reader,writer):
+    while True:
+        data = await reader.read(1024)
+        print(data.decode())
 
 
-import time
+async def main():
+    reader,writer = await asyncio.open_connection("127.0.0.1",7179)
+
+    while True:
+        inpu_data = input("입력하시오 : ")
+        data = {
+                "who":"rcs",
+                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                "where":"cobot",
+                "what":"write",
+                "how":( 16, 8001, 1, (123,) ),
+                "why":"request"
+        }
+        # data = {
+        #         "who":"rcs",
+        #         "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+        #         "where":"mobot",
+        #         "what":"write",
+        #         "how":"dotask move -100",
+        #         "why":"request"
+        # }
+        # data = {
+        #         "who":"rcs",
+        #         "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+        #         "where":"mobot",
+        #         "what":"write",
+        #         "how":"dotask move 100",
+        #         "why":"request"
+        # }
+        msg = json.dumps( data )
+        writer.write(msg.encode())
+        await writer.drain()
 
 
-client=ModbusTcpClient("192.168.1.2",502)
-client.connect()
-print("!!!!")
-
-
-while True:
-    tcp_current = ed.check_tcp(client.read_input_registers(7001,12).registers)
-    print(tcp_current)
-    time.sleep(1)
-
-
-
-
-client.write_registers(9001,ed.encode_short(-60.75))
-v = ed.decode_short(client.read_holding_registers(9001,2).registers)
-print(v)
-
-
-client.close()
+asyncio.run(main())
