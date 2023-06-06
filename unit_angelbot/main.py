@@ -68,7 +68,7 @@ class Unit:
             server = await asyncio.start_server(
                 self.handle_recv,
                 "127.0.0.1",
-                7179
+                9000
             )
             await server.serve_forever()
 
@@ -95,20 +95,10 @@ class Unit:
                     continue
 
                 try:
-                    if recv[:6] == b"Status":
-                        msg = {
-                            "who":"mobot",
-                            "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                            "where":"mobot",
-                            "what":"status",
-                            "how":recv,
-                            "why":"update"
-                        }
-                    else:
-                        msg = json.loads( recv )
+                    msg = json.loads( recv )
 
                 except Exception as e:
-                    print( self.name,"error trans dic\n",e )
+                    print( self.name,"error json load\n",e )
                     continue
 
                 try:
@@ -211,8 +201,11 @@ class Unit:
                     if what == "write":
                         await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )
                     elif what == "read":
-                        result = await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )
-                        print(result)
+                        result = await self.part["cobot"].handle_send( how[0],how[1],how[2] )
+                        if who == "rcs":
+                            print(result,"rcs로 전송")
+                        elif who == "unit":
+                            print(result,"unit이 사용")
                         
                     elif what == "move":
                         await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )

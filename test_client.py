@@ -9,37 +9,36 @@ async def handle_client(reader,writer):
 
 
 async def main():
-    reader,writer = await asyncio.open_connection("127.0.0.1",7179)
+    reader,writer = await asyncio.open_connection("127.0.0.1",9000)
 
-    while True:
-        inpu_data = input("입력하시오 : ")
-        data = {
-                "who":"rcs",
-                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                "where":"cobot",
-                "what":"write",
-                "how":( 16, 8001, 1, (123,) ),
-                "why":"request"
-        }
-        # data = {
-        #         "who":"rcs",
-        #         "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-        #         "where":"mobot",
-        #         "what":"write",
-        #         "how":"dotask move -100",
-        #         "why":"request"
-        # }
-        # data = {
-        #         "who":"rcs",
-        #         "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-        #         "where":"mobot",
-        #         "what":"write",
-        #         "how":"dotask move 100",
-        #         "why":"request"
-        # }
-        msg = json.dumps( data )
-        writer.write(msg.encode())
-        await writer.drain()
+    await asyncio.sleep(1)
+
+    data = {
+            "who":"rcs",
+            "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+            "where":"cobot",
+            "what":"write",
+            "how":( 16, 9001, 1, (3,) ),
+            "why":"request"
+    }
+    msg = json.dumps( data )
+    writer.write(msg.encode())
+    await writer.drain()
+
+    await asyncio.sleep(1)
+    
+
+    data = {
+            "who":"rcs",
+            "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+            "where":"cobot",
+            "what":"read",
+            "how":( 3, 9001, 1 ),
+            "why":"request"
+    }
+    msg = json.dumps( data )
+    writer.write(msg.encode())
+    await writer.drain()
 
 
 asyncio.run(main())
