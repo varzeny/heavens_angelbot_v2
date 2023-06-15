@@ -1,141 +1,77 @@
 import asyncio
+import os
+from module.server.server import Webserver
 
-# db #############################################################
-from sqlalchemy import Column, Integer, String, Boolean, select
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+class Rcs:
+    def __init__(self, name, addr) -> None:
+        self.name = name
+        self.addr = addr
+        self.NETWORK = asyncio.Queue()
+        self.UNITS = {}
+        self.task = {}
+        
+        # module
+        self.webserver = Webserver( self.NETWORK, self.UNITS, ("127.0.0.1",8000) )
 
-DATABASE_URL = "mysql+asyncmy://root:admin@localhost/rcs_heaven"
-
-engine = create_async_engine(DATABASE_URL, echo=True)
-async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-Base = declarative_base()
-
-class Angelbot(Base):
-    __tablename__ = "angelbot"
-    id = Column(Integer, primary_key=True, index=True)
-    type = Column(String(50))
-    name = Column(String(50))
-    ip = Column(String(50))
-    port = Column(Integer)
-    active = Column(Boolean, default=False)  # Default to False
-    status = Column(String(100))
-    battery = Column(Integer)
-    x = Column(Integer)
-    y = Column(Integer)
-    z = Column(Integer)
-
-# fastapi #############################################################
-
-
-import uvicorn
-from fastapi import FastAPI, Request, WebSocket
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-
-
-from module.unit.angelbot import Manager as angelbot
-
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-UNITS = {}
-NETWORK = asyncio.Queue()
-
-
-@app.websocket("/unit_connect")
-async def unit_connect(ws: WebSocket):
-    try:
-        await ws.accept()
-        name = await ws.receive_text()
-        addr = ws.client.host
-        UNITS[name] = angelbot( name, addr, ws )
-        print(UNITS)
-    
-    except Exception as e:
-        print("접속 과정 중 오류", e)
-
-    while True:
+    def run(self):
+        print("Rcs 시작됨")
         try:
-            msg = await ws.receive()
-            print( msg )
+            self.loop = asyncio.get_event_loop()
+            self.loop.create_task( self.main() )
+            self.loop.run_forever()
 
         except Exception as e:
-            print( name,"error 연결 끊김",e )
+            print(self.name,"error run",e)
+
+        print( "Rcs 종료됨" )
+
+    async def main(self):
+        # setup
+        self.loop.create_task( self.checkQueue() )
+
+        await self.NETWORK.put("aaa")
+
+
+
+        # server start
+        await self.webserver.run()
+        print("종료됨")
+
+
+    async def checkQueue(self):
+        while True:
             try:
-                ws.close()
-            except:
-                print("웹소켓 닫기시도 실패.")
-            finally:
-                break
+                msg = await self.NETWORK.get()
+                self.loop.create_task( self.logic( msg ) )
+
+            except Exception as e:
+                print(self.name,"error checkQueue",e)
+                continue
 
 
-    print(name,"연결 종료")
+    async def logic(self, msg):
+        try:
+            print( msg )
 
-
-@app.post("/test",response_class=HTMLResponse)
-async def pb_test():
-    await UNITS["unit_220"].ws.send_text("버튼으로 동작함")
-    print("&&&&&")
-
-
-
-    
+            if msg == "aaa":
+                await asyncio.sleep( 5 )
+                await self.UNITS["unit_220"].handle_send("hahaha!!!")
 
 
 
-@app.get("/", response_class=HTMLResponse)
-async def showPage_landing():
-    return FileResponse("page/landing.html")
-
-
-@app.get("/manageUnit", response_class=HTMLResponse)
-async def showPage_manageUnit():
-    return FileResponse("page/manageUnit.html")
-
-
-@app.post("/pb_dbCreate")
-async def registeUnit(request:Request):
-    data = await request.json()
-    print(data)
-
-    newUnit = Angelbot(
-        type=data['type'],
-        name=data['name'],
-        ip=data['ip'],
-        port=data['port'],
-        active=False,
-        status=None,
-        battery=None,
-        x=None,
-        y=None,
-        z=None
-    )
-    async with async_session() as session:
-        session.add(newUnit)
-        await session.commit()
-
-    print("db 등록 완료")
-    return {"message": "Angelbot registered successfully"}
-
-
-@app.get("/dbRead")
-async def dbRead():
-    async with async_session() as session:
-        result = await session.execute(select(Angelbot))
-        units = result.scalars().all()
-        return units
-
-
-# 관제영역 #############################################################
 
 
 
-##############################################################
+        except Exception as e:
+            print( self.name,f"logic 에서 msg : {msg} 처리중에 오류",e )
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
-    print("SSSSSSSSSS")
-    
+    rcs = Rcs( "heaven", ("127.0.0.1",8000) )
+    rcs.run()

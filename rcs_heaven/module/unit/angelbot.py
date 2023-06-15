@@ -18,4 +18,11 @@ class Manager:
                 "x":0, "y":0, "z":0, "rx":0, "ry":0, "rz":0
             }
         }
+        
 
+    async def handle_send(self, msg):
+        try:
+            await self.ws.send_text( msg )
+
+        except Exception as e:
+            print( self.name,"error handle_send" )
