@@ -46,16 +46,15 @@ class Manager:
 
 
     async def connect(self):
-        try:
-            print( self.name,"call connect" )
-            self.reader, self.writer = await asyncio.open_connection(self.addr[0],self.addr[1])
-            print( self.name,"success connect" )
+        while True:
+            try:
+                print( self.name,"----------------call connect" )
+                self.reader, self.writer = await asyncio.open_connection(self.addr[0],self.addr[1])
+                print( self.name,"success connect" )
+                break
 
-        except Exception as e:
-            print( self.name,"error connect\n",e )
-
-        finally:
-            print( self.name,"return connect" )
+            except Exception as e:
+                print( self.name,"--------error connect\n",e )
 
 
     async def handle_send(self, functionCode, rgAddr, rgCount, value = None):

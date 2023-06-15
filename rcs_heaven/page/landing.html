@@ -52,6 +52,43 @@
             </div>
         </div>
 
+        <div>
+            <button id="pb_test" style="width: 100%;">1 층</button>        
+        </div>
+
+
+        <script>
+
+            document.getElementById('pb_test').addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        key1: 'value1',
+                        key2: 'value2'
+                        // ...add more key-value pairs as required
+                    })
+                    });
+
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    console.log(data);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+                });
+
+
+
+        </script>
+
 
     </body>
 </html>
