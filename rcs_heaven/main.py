@@ -1,5 +1,4 @@
 import asyncio
-import os
 from module.server.server import Webserver
 
 class Rcs:
@@ -11,7 +10,8 @@ class Rcs:
         self.task = {}
         
         # module
-        self.webserver = Webserver( self.NETWORK, self.UNITS, ("127.0.0.1",8000) )
+        self.webserver = Webserver( self.NETWORK, self.UNITS, ("192.168.212.193",8000) )
+
 
     def run(self):
         print("Rcs 시작됨")
@@ -24,6 +24,7 @@ class Rcs:
             print(self.name,"error run",e)
 
         print( "Rcs 종료됨" )
+
 
     async def main(self):
         # setup
@@ -55,7 +56,7 @@ class Rcs:
 
             if msg == "aaa":
                 await asyncio.sleep( 5 )
-                await self.UNITS["unit_220"].handle_send("hahaha!!!")
+                await self.UNITS["unit_219"].handle_send("hahaha!!!")
 
 
 

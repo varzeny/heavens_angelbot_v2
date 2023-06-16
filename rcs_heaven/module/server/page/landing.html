@@ -47,17 +47,44 @@
             </div>
 
             <div style="flex: 2; border: 4px solid black; padding: 4px;">
-                <label>CONTROL</label>
+                <label>CONTROL</label><br>
+                <label for="input_cmd">cmd</label>
+                <input type="text" id="input_cmd">
 
+                <button id="pb_send" style="width: 100%;">send</button>        
             </div>
         </div>
 
         <div>
-            <button id="pb_test" style="width: 100%;">1 층</button>        
+            <button id="pb_test" style="width: 100%;">테스트 버튼</button>        
         </div>
 
 
         <script>
+
+            document.getElementById('pb_send').addEventListener('click',async function(){
+                try{
+                    const response = await fetch('/send2unit',{
+                        method:'POST',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify({
+                            data:document.getElementById('input_cmd').value
+                        })
+                    });
+
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    console.log(data);
+                } catch (error){
+                    console.error('Error:', error);
+                }
+            });
 
             document.getElementById('pb_test').addEventListener('click', async function() {
                 try {

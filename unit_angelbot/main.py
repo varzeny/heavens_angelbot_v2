@@ -201,6 +201,6 @@ class Unit:
 
 if __name__=="__main__":
     print( "unit 프로그램이 시작" )
-    unit = Unit("unit_220",("127.0.0.1",8000))
+    unit = Unit("unit_219",("127.0.0.1",8000))
     unit.run()
     print( "unit 프로그램이 종료" )

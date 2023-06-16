@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -7,6 +7,10 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from unit.angelbot import Manager as Angelbot
+
+import json
+
+
 
 class Webserver:
     def __init__(self, NETWORK, UNITS, addr):
@@ -23,14 +27,21 @@ class Webserver:
         self.app.get("/", response_class=HTMLResponse)(self.showPage_landing)
         self.app.get("/manageUnit", response_class=HTMLResponse)(self.showPage_manageUnit)
         self.app.post("/test", response_class=HTMLResponse)(self.pb_test)
+        self.app.post("/send2unit", response_class=HTMLResponse)(self.send2unit)
         # self.app.post("/pb_dbCreate")(self.registeUnit)
         # self.app.get("/dbRead")(self.dbRead)
 
 
     async def run(self):
         print("서버모듈 기동함")
-        server = uvicorn.Server( uvicorn.Config( self.app, self.addr[0], self.addr[1] ) )
-        await server.serve()
+
+        try:
+            server = uvicorn.Server( uvicorn.Config( self.app, self.addr[0], self.addr[1] ) )
+            await server.serve()
+
+        except Exception as e:
+            print("error 서버모듈",e)
+
         print("서버모듈 종료됨")
 
 
@@ -47,23 +58,35 @@ class Webserver:
 
         while True:
             try:
-                msg = await ws.receive()
-                print(msg)
+                recv = await ws.receive_text()
+                print(recv)
+
+            except WebSocketDisconnect:
+                print(name,"연결이 종료됨")
+                break
 
             except Exception as e:
-                print(name, "error 연결 끊김", e)
-                try:
-                    await ws.close()
-                except:
-                    print("웹소켓 닫기시도 실패.")
-                finally:
-                    break
+                print(name,"데이터 수신중 오류",e)
+                continue
 
-        print(name, "연결 종료")
+            try:
+                msg = json.loads( recv )
+                await self.NETWORK.put( msg )
+
+            except Exception as e:
+                print(name,"error 데이터 변환 혹은 큐에 넣기",e)
+                continue
+
+
+    async def send2unit(self, request: Request):
+        print("***************")
+        msg = await request.json()
+        print(msg)
+        await self.UNITS["unit_219"].handle_send( json.dumps(msg) )
 
 
     async def pb_test(self, request: Request):
-        await self.UNITS["unit_220"].ws.send_text("버튼으로 동작함")
+        await self.UNITS["unit_219"].ws.send_text("버튼으로 동작함")
         print("&&&&&")
 
 
