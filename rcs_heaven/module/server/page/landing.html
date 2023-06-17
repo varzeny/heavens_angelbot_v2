@@ -10,31 +10,135 @@
         <div id="navi" style="border: 4px solid black; padding: 4px;">
             <label>NAVI</label>
 
+            <a href="/"><button>모니터링</button></a>
             <a href="/manageUnit"><button>유닛 관리</button></a>
             <button>재고 관리</button>
         </div>
 
         <!-- 몸통 -->
         <div style="display: flex;">
+
+            <!-- 층 -->
             <div style="flex: 0.5; border: 4px solid black; padding: 4px;">
                 <label>FLOOR</label>
+                <hr/>
 
                 <button style="width: 100%;">3 층</button>
                 <button style="width: 100%;">2 층</button>
                 <button style="width: 100%;">1 층</button>      
             </div>
 
+            <!-- 지도 -->
             <div style="flex: 8; border: 4px solid black; padding: 4px;">
                 <img src="static/map/409map.png" style="width: 100%;">
             </div>
 
+            <!-- 작업 -->
             <div style="flex: 1.5; border: 4px solid black; padding: 4px;">
-                <label>TASK</label>
+                <label>WORK</label>
+                <button id="pb_work">작업 관리</button>
+                <hr/>
+
+                <!-- 진행중인 작업 -->
+                <div id="working" style="border: 4px solid black; padding: 4px;">
+                
+                </div>
+
+                <!-- 작업 모달 -->
+                <div id="modal_work" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 10%; top: 10%; background-color: rgb(221, 221, 221);">
+
+                    <label style="display: block; text-align: center;">작업 관리창</label>
+                    <hr/>
+
+                    <label>작업</label><button onclick="sendWork()">작업추가</button>
+                    <div id="work_setting" style="border: 4px solid black; margin: 4px;">
+                        
+                    </div>
+
+                    <hr/>
+
+                    <label>명령목록</label>
+                    <div id="cmd_list" style="border: 4px solid black; margin: 4px;">
+
+                        <div style="border: 4px solid black; margin: 4px;">
+                            <label>운반</label>
+                            <button onclick="setWork(
+                                {
+                                    work_type:'pnp',
+                                    unit_target:document.getElementById('unit_target').value,
+                                    pick_target:document.getElementById('pick_target').value,
+                                    pick_where:document.getElementById('pick_where').value,
+                                    pick_dir:document.getElementById('pick_dir').value,
+
+                                    place_target:document.getElementById('place_target').value,
+                                    place_where:document.getElementById('place_where').value,
+                                    place_dir:document.getElementById('place_dir').value
+                                }
+                            )">명령 추가</button>
+                            <br>
+
+                            <label>유닛</label><input id="unit_target" type="text"><br>
+
+                            <div style="display: flex;">
+
+                                <div style="flex: 5; border: 4px solid black; margin: 4px;">
+                                    <label style="display: block; text-align: center;">픽</label>
+                                    <label>대상</label><input id="pick_target" type="text"><br>
+                                    <label>위치</label><input id="pick_where" type="text"><br>
+                                    <label>방향</label><input id="pick_dir" type="text"><br>
+                                </div>
+
+                                <div style="flex: 5; border: 4px solid black; margin: 4px;">
+                                    <label style="display: block; text-align: center;">플레이스</label>
+                                    <label>대상</label><input id="place_target" type="text"><br>
+                                    <label>위치</label><input id="place_where" type="text"><br>
+                                    <label>방향</label><input id="place_dir" type="text"><br>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div style="border: 4px solid black; margin: 4px;">
+                            <label>이동</label>
+                            <button>명령 추가</button>
+                            <hr/>
+                            <label>대상</label><input type="text">
+                            <label>위치</label><input type="text">
+
+                        </div>
+
+                        <div style="border: 4px solid black; margin: 4px;">
+                            <label>팔 작업</label>
+                            <button>명령 추가</button>
+                            <hr/>
+                            <label>지정작업</label><input type="text">
+
+                        </div>
+
+                        <div style="border: 4px solid black; margin: 4px;">
+                            <label>도킹</label>
+                            <button>명령 추가</button>
+                            <hr/>
+
+                        </div>
+
+                    </div>
+
+                    <hr/>
+                    <button style="display: block; margin: auto;" onclick="(function(){
+                        document.getElementById('modal_work').style.display='none';
+                    })();">닫기</button>
+                    <br>
+                    
+                </div>
+
+
             </div>
 
         </div>
 
 
+        <!-- 하부 -->
         <div style="display: flex; border: 4px solid black; padding: 4px;">
             <div style="flex: 2; border: 4px solid black; padding: 4px;">
                 <label>HEAD IMAGE</label>
@@ -62,6 +166,52 @@
 
         <script>
 
+            async function setWork( data ){
+
+                pb_cmd = document.createElement('button');
+                pb_cmd.textContent = JSON.stringify( data )
+                pb_cmd.onclick = function(){
+                    this.remove();
+                }
+
+                document.getElementById('work_setting').appendChild( pb_cmd )
+            }
+
+
+            async function sendWork(){
+
+                buttons = document.getElementById('work_setting').children;
+
+                var n = 0;
+                var data = {};
+                
+                for( let pb of buttons ){
+                    data[n++] = pb.textContent
+                }
+
+                try{
+                    const response = await fetch(
+                        '/reqWork',
+                        {
+                            method:'POST',
+                            headers:{'Content-Type':'application/json'},
+                            body:JSON.stringify( data )
+                        }
+                    )
+
+                    if( !response.ok ){
+                        throw new Error('작업 전송 중 오류');
+                    }
+
+                    console.log( response )
+
+                }catch(error){
+                    console.error('Error respone',error);
+                }
+ 
+            };
+
+
             document.getElementById('pb_send').addEventListener('click',async function(){
                 try{
                     const response = await fetch('/send2unit',{
@@ -75,7 +225,7 @@
                     });
 
                     if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
                     const data = await response.json();
@@ -111,6 +261,11 @@
                     console.error('Error:', error);
                 }
                 });
+
+            
+            document.getElementById('pb_work').onclick = function(){
+                document.getElementById('modal_work').style.display = 'block';
+            }
 
 
 

@@ -33,6 +33,7 @@ class Manager:
         # 후기입력
         self.reader = None
         self.writer = None
+        self.flag_idle = asyncio.Event();    self.flag_idle.set()
         self.tcp = {
             "x":0,
             "y":0,
@@ -58,6 +59,7 @@ class Manager:
 
 
     async def handle_send(self, functionCode, rgAddr, rgCount, value = None):
+        self.flag_idle.clear()
         try:
             print( self.name,"call handle_send" )
             msg = Modbus.encoding( functionCode, rgAddr, rgCount, value )
@@ -66,7 +68,25 @@ class Manager:
             recv = await self.reader.read(1024)
             if functionCode <= 4:   # read 일 경우
                 result = Modbus.decoding(recv)
+                self.flag_idle.set()
                 return result
+            
+            # read 가 아닐 경우
+            try:
+                msg = Modbus.encoding( 3,9000,1 )
+                res = 100
+                while res != 0:
+                    await asyncio.sleep(1)
+                    self.writer.write( msg )
+                    await self.writer.drain()
+                    recv = await self.reader.read(1024)
+                    res = Modbus.decoding(recv)
+
+                self.flag_idle.set()
+                
+            except Exception as e:
+                print(self.name,"error modbus flaging")
+
 
         except Exception as e:
             print( self.name,"error handle_send\n",e )

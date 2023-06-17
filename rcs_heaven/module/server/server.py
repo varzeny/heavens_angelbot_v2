@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from unit.angelbot import Manager as Angelbot
 
 import json
-
+from datetime import datetime    # datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" )
 
 
 class Webserver:
@@ -20,9 +20,10 @@ class Webserver:
 
         # 서버 설정
         self.app = FastAPI()
-        # self.app.mount("/static", StaticFiles(directory="static"), name="static")
+        self.app.mount("/static", StaticFiles(directory="./module/server/static"), name="static")
 
         # url 연결
+        self.app.post("/reqWork")(self.reqWork)
         self.app.websocket("/unit_connect")(self.unit_connect)
         self.app.get("/", response_class=HTMLResponse)(self.showPage_landing)
         self.app.get("/manageUnit", response_class=HTMLResponse)(self.showPage_manageUnit)
@@ -71,11 +72,36 @@ class Webserver:
 
             try:
                 msg = json.loads( recv )
+                if msg["why"] == "update":
+                    self.UNITS[name].status = msg["how"]
+                    if msg["how"][0]:
+                        self.UNITS[name].flag_idle_cobot.set()
+                    if msg["how"][1]:
+                        self.UNITS[name].flag_idle_mobot.set()
+                    continue
+
                 await self.NETWORK.put( msg )
 
             except Exception as e:
                 print(name,"error 데이터 변환 혹은 큐에 넣기",e)
                 continue
+
+
+    async def reqWork(self, request: Request):
+        data = await request.json()
+
+        msg = {
+            "who":"front",
+            "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+            "where":"logic",
+            "what":"work",
+            "how":data,
+            "why":"request"
+        }
+        await self.NETWORK.put( msg )
+
+
+        return {"data":"success"}
 
 
     async def send2unit(self, request: Request):
@@ -86,7 +112,7 @@ class Webserver:
 
 
     async def pb_test(self, request: Request):
-        await self.UNITS["unit_219"].ws.send_text("버튼으로 동작함")
+        await self.UNITS["unit_219"].handle_send("버튼으로 동작함")
         print("&&&&&")
 
 

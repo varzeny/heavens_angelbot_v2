@@ -1,4 +1,8 @@
 import asyncio
+import subprocess
+import json
+from datetime import datetime
+
 from module.server.server import Webserver
 
 class Rcs:
@@ -10,7 +14,7 @@ class Rcs:
         self.task = {}
         
         # module
-        self.webserver = Webserver( self.NETWORK, self.UNITS, ("192.168.212.193",8000) )
+        self.webserver = Webserver( self.NETWORK, self.UNITS, (self.addr[0],self.addr[1]) )
 
 
     def run(self):
@@ -29,9 +33,6 @@ class Rcs:
     async def main(self):
         # setup
         self.loop.create_task( self.checkQueue() )
-
-        await self.NETWORK.put("aaa")
-
 
 
         # server start
@@ -52,15 +53,95 @@ class Rcs:
 
     async def logic(self, msg):
         try:
-            print( msg )
+            # print( msg )
+            who = msg["who"]
+            when = msg["when"]
+            where = msg["where"]
+            what = msg["what"]
+            how = msg["how"]
+            why = msg["why"]
 
-            if msg == "aaa":
-                await asyncio.sleep( 5 )
-                await self.UNITS["unit_219"].handle_send("hahaha!!!")
+            if where == "logic":
+                if what == "work":
+                    works = []
+                    n = 0
+                    while True:
+                        try:
+                            works.append( how[f"{str(n)}"] )
+                            n += 1
+                        except:
+                            break
+
+                    # print(works)
+
+                    # 테스크포스 #################################
+                    for work_json in works:
+                        work = json.loads(work_json)
+
+                        if work["work_type"] == "pnp":
+
+                            # 작업 시작 대기
+                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
+                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
+
+                            # 픽 이동 ############################################
+                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
+                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.clear()
+                            cmd = {
+                                "who":"rcs",
+                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                                "where":"mobot",
+                                "what":"write",
+                                "how":f"goto {work['pick_where']}",
+                                "why":"request"
+                            }
+                            data = json.dumps( cmd )
+                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+
+                            # 픽 ############################################
+                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
+                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.clear()
+                            cmd = {
+                                "who":"rcs",
+                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                                "where":"cobot",
+                                "what":"write",
+                                "how":(16,9000,1,int(f"{work['pick_dir']}")),
+                                "why":"request"
+                            }
+                            data = json.dumps( cmd )
+                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+
+                            # 플레이스 이동 ############################################
+                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
+                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.clear()
+                            cmd = {
+                                "who":"rcs",
+                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                                "where":"mobot",
+                                "what":"write",
+                                "how":f"goto {work['place_where']}",
+                                "why":"request"
+                            }
+                            data = json.dumps( cmd )
+                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+
+                            # 플레이스 ############################################
+                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
+                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.clear()
+                            cmd = {
+                                "who":"rcs",
+                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                                "where":"cobot",
+                                "what":"write",
+                                "how":(16,9000,1,int(f"{work['place_dir']}")),
+                                "why":"request"
+                            }
+                            data = json.dumps( cmd )
+                            await self.UNITS[ work["unit_target"] ].handle_send( data )
 
 
-
-
+                    ############################################
 
 
         except Exception as e:
@@ -74,5 +155,15 @@ class Rcs:
 
 
 if __name__ == "__main__":
-    rcs = Rcs( "heaven", ("127.0.0.1",8000) )
+
+    ip = subprocess.run(
+        "nmcli device show wlo1 | grep IP4.ADDRESS",
+        shell=True,
+        capture_output=True,
+        text=True
+    ).stdout.split(" ")[-1].split("/")[0]
+
+    print(ip)
+
+    rcs = Rcs( "heaven", (ip,8000) )
     rcs.run()

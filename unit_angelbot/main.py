@@ -53,6 +53,7 @@ class Unit:
             # init #
             self.task["check_queue"] = self.loop.create_task( self.check_queue() )
             self.task["listen"] = self.loop.create_task( self.listen() )
+            self.task["check_status"] = self.loop.create_task( self.check_status() )
 
             self.part["mobot"].task["connect"] = self.loop.create_task( self.part["mobot"].connect() )
             self.part["cobot"].task["connect"] = self.loop.create_task( self.part["cobot"].connect() )
@@ -75,13 +76,44 @@ class Unit:
                 continue
 
             try:
-                async for msg in self.rcs["websocket"]:
-                    print( msg )
+                async for recv in self.rcs["websocket"]:
+                    print( type(recv),"recv =",recv )
+                    msg = json.loads( recv.decode() )
+                    await self.Q_unit.put( msg )
+
 
             except Exception as e:
                 print(self.name,"--------rcs 수신대기 중 오류, 재접속 중...")
                 continue
  
+    ##################################################################
+
+    async def check_status(self):
+
+        # 접속 대기 시간
+        await asyncio.sleep(5)
+
+        while True:
+            try:
+                data = {
+                    "who":self.name,
+                    "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
+                    "where":"rcs",
+                    "what":"status",
+                    "how":(self.part['cobot'].flag_idle.is_set(), self.part['mobot'].flag_idle.is_set(), self.part['mobot'].status),
+                    "why":"update"
+                }
+                msg = json.dumps( data )
+                await self.handle_send( msg )
+
+            except Exception as e:
+                print(self.name,"error check_status",e)
+                continue
+
+            finally:
+                await asyncio.sleep(1)
+
+
     ##################################################################
 
     async def handle_send(self, msg):
@@ -94,35 +126,35 @@ class Unit:
 
     ##################################################################
 
-    async def listen(self):
-        print( "----------------call listen",self.name )
-        while True:
-            try:
-                server = await websockets.serve(
-                    self.handle_client,
-                    "127.0.0.1",
-                    9000
-                )
+    # async def listen(self):
+    #     print( "----------------call listen",self.name )
+    #     while True:
+    #         try:
+    #             server = await websockets.serve(
+    #                 self.handle_client,
+    #                 "127.0.0.1",
+    #                 9000
+    #             )
 
-            except Exception as e:
-                print("--------오류 listen")
+    #         except Exception as e:
+    #             print("--------오류 listen")
 
-            finally:
-                await server.wait_closed()
+    #         finally:
+    #             await server.wait_closed()
 
 
-    ##################################################################
+    # ##################################################################
 
-    async def handle_client(self, websocket, path):
-        print(websocket.remote_address,"가 접속함")
-        try:
-            async for msg in websocket:
-                print( msg )
+    # async def handle_client(self, websocket, path):
+    #     print(websocket.remote_address,"가 접속함")
+    #     try:
+    #         async for msg in websocket:
+    #             print( msg )
 
-            print( websocket.remote_address,"접속 끊어짐" )
+    #         print( websocket.remote_address,"접속 끊어짐" )
 
-        except Exception as e:
-            print( "----------------error handle_client",e )
+    #     except Exception as e:
+    #         print( "----------------error handle_client",e )
     
     ##################################################################
 

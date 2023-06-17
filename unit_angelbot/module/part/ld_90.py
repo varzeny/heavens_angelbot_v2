@@ -17,6 +17,7 @@ class Manager:
         # 후기입력
         self.reader = None
         self.writer = None
+        self.flag_idle = asyncio.Event();    self.flag_idle.set()
         self.state = None
         self.status = {
             "status":"disconnect",
@@ -114,6 +115,8 @@ class Manager:
                     dic = { k.strip():v.strip() for k, v  in (s.split(':')[:2] for s in data) }
                     
                     self.status["status"] = dic["Status"]
+                    if dic["Status"][:4] == "stop":
+                        self.flag_idle.set()
                     self.status["battery"] = int(float(dic["StateOfCharge"]))
                     self.status["location"]["x"] = int((dic["Location"].split(' '))[0])
                     self.status["location"]["y"] = int((dic["Location"].split(' '))[1])
@@ -127,6 +130,7 @@ class Manager:
 
     async def handle_send(self,msg):
         try:
+            self.flag_idle.clear()
             self.writer.write( msg.encode()+b"\r\n" )
             await self.writer.drain()
 
