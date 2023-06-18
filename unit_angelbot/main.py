@@ -2,7 +2,7 @@
 
 
 
-
+import sys
 import asyncio
 import websockets
 import json
@@ -49,25 +49,32 @@ class Unit:
 
     async def main(self):
         print( self.name,"----------------call main" )
-        try:
-            # init #
-            self.task["check_queue"] = self.loop.create_task( self.check_queue() )
-            self.task["listen"] = self.loop.create_task( self.listen() )
-            self.task["check_status"] = self.loop.create_task( self.check_status() )
 
+        try:
+            # init #############################################################
             self.part["mobot"].task["connect"] = self.loop.create_task( self.part["mobot"].connect() )
             self.part["cobot"].task["connect"] = self.loop.create_task( self.part["cobot"].connect() )
+
+            # self.task["listen"] = self.loop.create_task( self.listen() )
+            self.task["check_queue"] = self.loop.create_task( self.check_queue() )
+            self.task["check_status"] = self.loop.create_task( self.check_status() )
+            ####################################################################
                  
         except Exception as e:
             print( self.name,"--------error main\n",e )
+
 
         # connect rcs #
         while True:
             try:
                 await asyncio.sleep(2)
-                print(self.rcs["addr"])
-                print( self.name,"----------------connecting RCS" )
-                self.rcs["websocket"] = await websockets.connect(f"ws://{self.rcs['addr'][0]}:{self.rcs['addr'][1]}/unit_connect")
+
+                print( self.name,"----------------connecting RCS",self.rcs["addr"] )
+                self.rcs["websocket"] = await websockets.connect(
+
+                    f"ws://{self.rcs['addr'][0]}:{self.rcs['addr'][1]}/unit_connect"
+                )
+
                 await self.rcs["websocket"].send(f"{self.name}")
                 print(self.name,"----------------rcs 접속 성공")
 
@@ -78,7 +85,8 @@ class Unit:
             try:
                 async for recv in self.rcs["websocket"]:
                     print( type(recv),"recv =",recv )
-                    msg = json.loads( recv.decode() )
+
+                    msg = json.loads( recv )
                     await self.Q_unit.put( msg )
 
 
@@ -100,7 +108,11 @@ class Unit:
                     "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
                     "where":"rcs",
                     "what":"status",
-                    "how":(self.part['cobot'].flag_idle.is_set(), self.part['mobot'].flag_idle.is_set(), self.part['mobot'].status),
+                    "how":[
+                        self.part['cobot'].flag_idle.is_set(),
+                        self.part['mobot'].flag_idle.is_set(),
+                        self.part['mobot'].status
+                    ],
                     "why":"update"
                 }
                 msg = json.dumps( data )
@@ -233,6 +245,6 @@ class Unit:
 
 if __name__=="__main__":
     print( "unit 프로그램이 시작" )
-    unit = Unit("unit_219",("127.0.0.1",8000))
+    unit = Unit( sys.argv[1], ( sys.argc[2], sys.argv[3] ) )
     unit.run()
     print( "unit 프로그램이 종료" )

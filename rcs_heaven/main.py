@@ -84,61 +84,34 @@ class Rcs:
                             await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
                             await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
 
+
                             # 픽 이동 ############################################
+                            await self.UNITS[ work["unit_target"] ].mobot_control(
+                                f"goto { work['pick_where'] }"
+                            )
                             await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
-                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.clear()
-                            cmd = {
-                                "who":"rcs",
-                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                                "where":"mobot",
-                                "what":"write",
-                                "how":f"goto {work['pick_where']}",
-                                "why":"request"
-                            }
-                            data = json.dumps( cmd )
-                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+
 
                             # 픽 ############################################
+                            await self.UNITS[ work["unit_target"] ].cobot_control(
+                                ( 16, 9000, 1, int( f"{ work['pick_dir'] }" ) )
+                            )
                             await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
-                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.clear()
-                            cmd = {
-                                "who":"rcs",
-                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                                "where":"cobot",
-                                "what":"write",
-                                "how":(16,9000,1,int(f"{work['pick_dir']}")),
-                                "why":"request"
-                            }
-                            data = json.dumps( cmd )
-                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+                            
 
                             # 플레이스 이동 ############################################
+                            await self.UNITS[ work["unit_target"] ].mobot_control(
+                                f"goto { work['place_where'] }"
+                            )
                             await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
-                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.clear()
-                            cmd = {
-                                "who":"rcs",
-                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                                "where":"mobot",
-                                "what":"write",
-                                "how":f"goto {work['place_where']}",
-                                "why":"request"
-                            }
-                            data = json.dumps( cmd )
-                            await self.UNITS[ work["unit_target"] ].handle_send( data )
 
                             # 플레이스 ############################################
+                            await self.UNITS[ work["unit_target"] ].cobot_control(
+                                ( 16, 9000, 1, int( f"{ work['place_dir'] }" ) )
+                            )
                             await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
-                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.clear()
-                            cmd = {
-                                "who":"rcs",
-                                "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
-                                "where":"cobot",
-                                "what":"write",
-                                "how":(16,9000,1,int(f"{work['place_dir']}")),
-                                "why":"request"
-                            }
-                            data = json.dumps( cmd )
-                            await self.UNITS[ work["unit_target"] ].handle_send( data )
+
+                            print("작업 무사 종료")
 
 
                     ############################################

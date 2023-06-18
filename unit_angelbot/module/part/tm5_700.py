@@ -65,7 +65,9 @@ class Manager:
             msg = Modbus.encoding( functionCode, rgAddr, rgCount, value )
             self.writer.write( msg )
             await self.writer.drain()
+
             recv = await self.reader.read(1024)
+
             if functionCode <= 4:   # read 일 경우
                 result = Modbus.decoding(recv)
                 self.flag_idle.set()
@@ -81,6 +83,7 @@ class Manager:
                     await self.writer.drain()
                     recv = await self.reader.read(1024)
                     res = Modbus.decoding(recv)
+                    print( "corrent rg9000 =",res )
 
                 self.flag_idle.set()
                 

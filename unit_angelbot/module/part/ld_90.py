@@ -114,9 +114,13 @@ class Manager:
 
                     dic = { k.strip():v.strip() for k, v  in (s.split(':')[:2] for s in data) }
                     
+
+                    for s in ["Stop","Dock","Reac"]:
+                        if dic["Status"][:4] == s:
+                            self.flag_idle.set()
+                            break
+                        
                     self.status["status"] = dic["Status"]
-                    if dic["Status"][:4] == "stop":
-                        self.flag_idle.set()
                     self.status["battery"] = int(float(dic["StateOfCharge"]))
                     self.status["location"]["x"] = int((dic["Location"].split(' '))[0])
                     self.status["location"]["y"] = int((dic["Location"].split(' '))[1])
