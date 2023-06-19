@@ -115,7 +115,7 @@ class Manager:
                     dic = { k.strip():v.strip() for k, v  in (s.split(':')[:2] for s in data) }
                     
 
-                    for s in ["Stop","Dock","Reac"]:
+                    for s in ["Stop","Dock","Comp","Fail","Sayi"]:
                         if dic["Status"][:4] == s:
                             self.flag_idle.set()
                             break

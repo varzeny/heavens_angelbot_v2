@@ -116,11 +116,11 @@ if __name__=="__main__":
 
         ############################################################################
 
-        writer.write( Modbus.encoding( 16,9015,1,(625,) ) )
+        writer.write( Modbus.encoding( 16,9101,1,(625,) ) )
         await writer.drain()
         recv = await reader.read(1024)
 
-        writer.write( Modbus.encoding( 3,9015,1 ) )
+        writer.write( Modbus.encoding( 3,9101,1 ) )
         await writer.drain()
         recv = await reader.read(1024)
         print( Modbus.decoding(recv) )

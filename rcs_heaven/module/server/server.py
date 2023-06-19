@@ -60,7 +60,7 @@ class Webserver:
         while True:
             try:
                 recv = await ws.receive_text()
-                print(recv)
+                # print(recv)
 
             except WebSocketDisconnect:
                 print(name,"연결이 종료됨")
@@ -78,6 +78,7 @@ class Webserver:
                         self.UNITS[name].flag_idle_cobot.set()
                     if msg["how"][1]:
                         self.UNITS[name].flag_idle_mobot.set()
+                    print(self.UNITS[name].status)
                     continue
 
                 await self.NETWORK.put( msg )

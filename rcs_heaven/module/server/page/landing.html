@@ -60,6 +60,7 @@
                     <label>명령목록</label>
                     <div id="cmd_list" style="border: 4px solid black; margin: 4px;">
 
+                        <!-- 운반 명령 -->
                         <div style="border: 4px solid black; margin: 4px;">
                             <label>운반</label>
                             <button onclick="setWork(
@@ -98,28 +99,36 @@
                             </div>
                         </div>
 
+
+                        <!-- cobot 명령 -->
                         <div style="border: 4px solid black; margin: 4px;">
-                            <label>이동</label>
-                            <button>명령 추가</button>
+                            <label>COBOT Control</label>
+                            <button onclick="setWork(
+                                {
+                                    work_type:'cobotCmd',
+                                    work_unit:document.getElementById('cobotCmd_unit').value,
+                                    work_cmd:document.getElementById('cobotCmd_value').value
+                                }
+                            )">명령 추가</button>
                             <hr/>
-                            <label>대상</label><input type="text">
-                            <label>위치</label><input type="text">
+                            <label>대상</label><input id="cobotCmd_unit" type="text">
+                            <label>MODBUS CMD</label><input id="cobotCmd_value" type="text">
 
                         </div>
 
+                        <!-- mobot 명령 -->
                         <div style="border: 4px solid black; margin: 4px;">
-                            <label>팔 작업</label>
-                            <button>명령 추가</button>
+                            <label>MOBOT Control</label>
+                            <button onclick="setWork(
+                                {
+                                    work_type:'mobotCmd',
+                                    work_unit:document.getElementById('mobotCmd_unit').value,
+                                    work_cmd:document.getElementById('mobotCmd_value').value
+                                }
+                            )">명령 추가</button>
                             <hr/>
-                            <label>지정작업</label><input type="text">
-
-                        </div>
-
-                        <div style="border: 4px solid black; margin: 4px;">
-                            <label>도킹</label>
-                            <button>명령 추가</button>
-                            <hr/>
-
+                            <label>대상</label><input id="mobotCmd_unit" type="text">
+                            <label>ARCL CMD</label><input id="mobotCmd_value" type="text">
                         </div>
 
                     </div>
@@ -140,33 +149,24 @@
 
         <!-- 하부 -->
         <div style="display: flex; border: 4px solid black; padding: 4px;">
+
             <div style="flex: 2; border: 4px solid black; padding: 4px;">
                 <label>HEAD IMAGE</label>
 
             </div>
 
-            <div style="flex: 6; border: 4px solid black; padding: 4px;">
+            <div style="flex: 8; border: 4px solid black; padding: 4px;">
                 <label>STATUS</label>
 
             </div>
-
-            <div style="flex: 2; border: 4px solid black; padding: 4px;">
-                <label>CONTROL</label><br>
-                <label for="input_cmd">cmd</label>
-                <input type="text" id="input_cmd">
-
-                <button id="pb_send" style="width: 100%;">send</button>        
-            </div>
-        </div>
-
-        <div>
-            <button id="pb_test" style="width: 100%;">테스트 버튼</button>        
+         
         </div>
 
 
         <script>
 
             async function setWork( data ){
+                // console.log( data )
 
                 pb_cmd = document.createElement('button');
                 pb_cmd.textContent = JSON.stringify( data )
@@ -175,6 +175,10 @@
                 }
 
                 document.getElementById('work_setting').appendChild( pb_cmd )
+            }
+
+            async function addWork( data ){
+                
             }
 
 

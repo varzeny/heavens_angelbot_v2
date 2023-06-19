@@ -22,7 +22,7 @@ class Manager:
                 y: 9003 9004    ry:9009 9010
                 z: 9005 9006    rz:9011 9012
             switch
-                9000
+                9101
 
     '''
     def __init__(self, Q_sbc, name, addr) -> None:
@@ -50,15 +50,19 @@ class Manager:
         while True:
             try:
                 print( self.name,"----------------call connect" )
-                self.reader, self.writer = await asyncio.open_connection(self.addr[0],self.addr[1])
+                self.reader, self.writer = await asyncio.wait_for(
+                    asyncio.open_connection(self.addr[0],self.addr[1]),
+                    timeout= 2.0
+                )
                 print( self.name,"success connect" )
                 break
 
             except Exception as e:
                 print( self.name,"--------error connect\n",e )
+                await asyncio.sleep(1)
 
 
-    async def handle_send(self, functionCode, rgAddr, rgCount, value = None):
+    async def handle_send(self, functionCode, rgAddr, rgCount, value = ()):
         self.flag_idle.clear()
         try:
             print( self.name,"call handle_send" )
@@ -75,15 +79,15 @@ class Manager:
             
             # read 가 아닐 경우
             try:
-                msg = Modbus.encoding( 3,9000,1 )
-                res = 100
-                while res != 0:
+                msg = Modbus.encoding( 3,9101,1 )
+                res = [100]
+                while res[0] != 0:
                     await asyncio.sleep(1)
                     self.writer.write( msg )
                     await self.writer.drain()
                     recv = await self.reader.read(1024)
                     res = Modbus.decoding(recv)
-                    print( "corrent rg9000 =",res )
+                    # print( "corrent rg9101 =",res )
 
                 self.flag_idle.set()
                 
