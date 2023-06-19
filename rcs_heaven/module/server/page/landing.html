@@ -50,7 +50,8 @@
                     <label style="display: block; text-align: center;">작업 관리창</label>
                     <hr/>
 
-                    <label>작업</label><button onclick="sendWork()">작업추가</button>
+                    <label>작업</label><button onclick="addWork()">작업추가</button>
+                    <label>작업이름</label><input id="work_name" type="text">
                     <div id="work_setting" style="border: 4px solid black; margin: 4px;">
                         
                     </div>
@@ -59,45 +60,6 @@
 
                     <label>명령목록</label>
                     <div id="cmd_list" style="border: 4px solid black; margin: 4px;">
-
-                        <!-- 운반 명령 -->
-                        <div style="border: 4px solid black; margin: 4px;">
-                            <label>운반</label>
-                            <button onclick="setWork(
-                                {
-                                    work_type:'pnp',
-                                    unit_target:document.getElementById('unit_target').value,
-                                    pick_target:document.getElementById('pick_target').value,
-                                    pick_where:document.getElementById('pick_where').value,
-                                    pick_dir:document.getElementById('pick_dir').value,
-
-                                    place_target:document.getElementById('place_target').value,
-                                    place_where:document.getElementById('place_where').value,
-                                    place_dir:document.getElementById('place_dir').value
-                                }
-                            )">명령 추가</button>
-                            <br>
-
-                            <label>유닛</label><input id="unit_target" type="text"><br>
-
-                            <div style="display: flex;">
-
-                                <div style="flex: 5; border: 4px solid black; margin: 4px;">
-                                    <label style="display: block; text-align: center;">픽</label>
-                                    <label>대상</label><input id="pick_target" type="text"><br>
-                                    <label>위치</label><input id="pick_where" type="text"><br>
-                                    <label>방향</label><input id="pick_dir" type="text"><br>
-                                </div>
-
-                                <div style="flex: 5; border: 4px solid black; margin: 4px;">
-                                    <label style="display: block; text-align: center;">플레이스</label>
-                                    <label>대상</label><input id="place_target" type="text"><br>
-                                    <label>위치</label><input id="place_where" type="text"><br>
-                                    <label>방향</label><input id="place_dir" type="text"><br>
-                                </div>
-
-                            </div>
-                        </div>
 
 
                         <!-- cobot 명령 -->
@@ -177,21 +139,54 @@
                 document.getElementById('work_setting').appendChild( pb_cmd )
             }
 
-            async function addWork( data ){
-                
-            }
-
-
-            async function sendWork(){
-
+            async function addWork(){
+                work_name = document.getElementById('work_name').value
                 buttons = document.getElementById('work_setting').children;
 
                 var n = 0;
-                var data = {};
+                var data = {
+                    "work_name":work_name,
+                };
                 
                 for( let pb of buttons ){
                     data[n++] = pb.textContent
                 }
+
+                div_works = document.createElement('div');
+                div_works.id = work_name;
+                div_works.style.border = "4px solid black;"
+                
+
+                // "border: 4px solid black; margin: 4px;";
+                lbl = document.createElement('label')
+                lbl.innerText = work_name;
+
+                pb_start = document.createElement('button');
+                    pb_start.innerText = "start";
+                    pb_start.setAttribute('data-json', JSON.stringify( data ))
+                    pb_start.onclick = function(){
+                        sendWork( this.getAttribute('data-json') )
+                    };
+
+                pb_delete = document.createElement('button');
+                    pb_delete.innerText = "delete"
+
+                div_works.appendChild( lbl );
+                div_works.appendChild( document.createElement('br') );
+                div_works.appendChild( pb_start );
+                div_works.appendChild( pb_delete );
+
+
+
+
+                document.getElementById('working').appendChild( div_works )
+
+            }
+
+
+            async function sendWork( data ){
+
+                // console.log( data )
 
                 try{
                     const response = await fetch(
@@ -199,7 +194,7 @@
                         {
                             method:'POST',
                             headers:{'Content-Type':'application/json'},
-                            body:JSON.stringify( data )
+                            body:data
                         }
                     )
 
@@ -214,57 +209,6 @@
                 }
  
             };
-
-
-            document.getElementById('pb_send').addEventListener('click',async function(){
-                try{
-                    const response = await fetch('/send2unit',{
-                        method:'POST',
-                        headers:{
-                            'Content-Type':'application/json'
-                        },
-                        body: JSON.stringify({
-                            data:document.getElementById('input_cmd').value
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    console.log(data);
-                } catch (error){
-                    console.error('Error:', error);
-                }
-            });
-
-            document.getElementById('pb_test').addEventListener('click', async function() {
-                try {
-                    const response = await fetch('/test', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        key1: 'value1',
-                        key2: 'value2'
-                        // ...add more key-value pairs as required
-                    })
-                    });
-
-                    if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    console.log(data);
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-                });
 
             
             document.getElementById('pb_work').onclick = function(){

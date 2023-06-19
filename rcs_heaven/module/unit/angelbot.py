@@ -14,6 +14,7 @@ class Manager:
         self.flag_idle_mobot = asyncio.Event(); self.flag_idle_mobot.set()
 
         self.task = {}
+        self.go = asyncio.Event(); self.go.set()
         self.status = [
             self.flag_idle_cobot.is_set(),
             self.flag_idle_mobot.is_set(),
@@ -40,7 +41,6 @@ class Manager:
 
     async def cobot_control(self, data):
         try:
-            self.flag_idle_cobot.clear()
             cmd = {
                 "who":"rcs",
                 "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
@@ -52,6 +52,7 @@ class Manager:
 
             msg = json.dumps( cmd )
             await self.handle_send( msg )
+            self.flag_idle_cobot.clear()
 
         except Exception as e:
             print( self.name,"error cobot_control",e )
@@ -60,7 +61,6 @@ class Manager:
 
     async def mobot_control(self, data):
         try:
-            self.flag_idle_mobot.clear()
 
             cmd = {
                 "who":"rcs",
@@ -73,6 +73,7 @@ class Manager:
 
             msg = json.dumps( cmd )
             await self.handle_send( msg )
+            self.flag_idle_mobot.clear()
 
         except Exception as e:
             print( self.name,"error mobot_control",e )

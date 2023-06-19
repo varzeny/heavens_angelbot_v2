@@ -72,13 +72,20 @@ class Webserver:
 
             try:
                 msg = json.loads( recv )
-                if msg["why"] == "update":
+                if (msg["why"] == "update") and (self.UNITS[name].go.is_set()):
                     self.UNITS[name].status = msg["how"]
                     if msg["how"][0]:
                         self.UNITS[name].flag_idle_cobot.set()
+                    else:
+                        self.UNITS[name].flag_idle_cobot.clear()
                     if msg["how"][1]:
                         self.UNITS[name].flag_idle_mobot.set()
+                    else:
+                        self.UNITS[name].flag_idle_mobot.clear()
                     print(self.UNITS[name].status)
+                    continue
+
+                elif (msg["why"] == "update"):
                     continue
 
                 await self.NETWORK.put( msg )
@@ -90,6 +97,7 @@ class Webserver:
 
     async def reqWork(self, request: Request):
         data = await request.json()
+        print("555555555555555555555555555555555555555555",data)
 
         msg = {
             "who":"front",
@@ -100,6 +108,7 @@ class Webserver:
             "why":"request"
         }
         await self.NETWORK.put( msg )
+        print(" 요청을 받아서 큐에 넣음 ")
 
 
         return {"data":"success"}

@@ -52,7 +52,7 @@ class Rcs:
 
 
     async def logic(self, msg):
-        print("로직 시작")
+        print("로직 시작",msg)
         try:
             # print( msg )
             who = msg["who"]
@@ -78,8 +78,10 @@ class Rcs:
                     # 테스크포스 #################################
                     for work_json in works:
                         work = json.loads(work_json)
+                        print("666666666666666666666666666666",work)
 
                         if work["work_type"] == "cobotCmd": ####################
+                            print("cobot 시작~~~~~~~~~~~~~~~~~~~~~~~!")
                             # 작업 시작 대기
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
@@ -87,11 +89,18 @@ class Rcs:
                             await self.UNITS[ work["work_unit"] ].cobot_control(
                                 (16, 9101, 1, (int( f"{ work['work_cmd'] }" ),))
                             )
+                            print("cobot에 전달함 @@@@@@@@@@@@@@")
+
+                            self.UNITS[ work["work_unit"] ].go.clear()
+                            self.UNITS[ work["work_unit"] ].flag_idle_cobot.clear()
+                            await asyncio.sleep(3)
+                            self.UNITS[ work["work_unit"] ].go.set()
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             print(self.UNITS[ work["work_unit"] ],"cobotCmd 작업 완료")
 
 
                         elif work["work_type"] == "mobotCmd": ####################
+                            print("mobot 시작~~~~~~~~~~~~~~~~~~~~~~~!")
                             # 작업 시작 대기
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
@@ -99,45 +108,16 @@ class Rcs:
                             await self.UNITS[ work["work_unit"] ].mobot_control(
                                 f"{work['work_cmd']}"
                             )
+                            print("mobot에 전달함 @@@@@@@@@@@@@@")
+                            self.UNITS[ work["work_unit"] ].go.clear()
+                            self.UNITS[ work["work_unit"] ].flag_idle_mobot.clear()
+                            await asyncio.sleep(3)
+                            self.UNITS[ work["work_unit"] ].go.set()
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
                             print(self.UNITS[ work["work_unit"] ],"mobotCmd 작업 완료")
 
                         
-                        elif work["work_type"] == "pnp": ############################3
-
-                            # 작업 시작 대기
-                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
-                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
-
-
-                            # 픽 이동 ############################################
-                            await self.UNITS[ work["unit_target"] ].mobot_control(
-                                f"goto { work['pick_where'] }"
-                            )
-                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
-
-
-                            # 픽 ############################################
-                            await self.UNITS[ work["unit_target"] ].cobot_control(
-                                ( 16, 9101, 1, int( f"{ work['pick_dir'] }" ) )
-                            )
-                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
-                            
-
-                            # 플레이스 이동 ############################################
-                            await self.UNITS[ work["unit_target"] ].mobot_control(
-                                f"goto { work['place_where'] }"
-                            )
-                            await self.UNITS[ work["unit_target"] ].flag_idle_mobot.wait()
-
-                            # 플레이스 ############################################
-                            await self.UNITS[ work["unit_target"] ].cobot_control(
-                                ( 16, 9101, 1, int( f"{ work['place_dir'] }" ) )
-                            )
-                            await self.UNITS[ work["unit_target"] ].flag_idle_cobot.wait()
-
-                            print(self.UNITS[ work["unit_target"] ],"pnp 작업 완료")
-
+                        
 
 
                     ############################################

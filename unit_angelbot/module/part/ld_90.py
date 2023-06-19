@@ -91,7 +91,7 @@ class Manager:
 
     
     async def handle_mobot(self,reader,writer):
-        print( self.name,"----------------call handle_mobot",writer.get_extra_info("peername") )
+        print( self.name,"----------------call handle_mobot 7179",writer.get_extra_info("peername") )
 
         while True:
             try:
@@ -105,6 +105,7 @@ class Manager:
 
             try:
                 recv = recv_b.decode()
+
                 if recv[:6] == "Status":
                     
                     # Status:  BatteryVoltage:  Location:  Temperature: 
@@ -114,18 +115,27 @@ class Manager:
 
                     dic = { k.strip():v.strip() for k, v  in (s.split(':')[:2] for s in data) }
                     
-
-                    for s in ["Stop","Dock","Comp","Fail","Sayi"]:
-                        if dic["Status"][:4] == s:
-                            self.flag_idle.set()
-                            break
-                        
+                    
                     self.status["status"] = dic["Status"]
                     self.status["battery"] = int(float(dic["StateOfCharge"]))
                     self.status["location"]["x"] = int((dic["Location"].split(' '))[0])
                     self.status["location"]["y"] = int((dic["Location"].split(' '))[1])
                     self.status["location"]["theta"] = int((dic["Location"].split(' '))[2])
+
                     self.status["temperature"] = int(dic["Temperature"])
+
+                    ff = False
+                    for s in ["Stop","Dock","Comp","Fail","Sayi","Robo"]:
+                        if self.status["status"][:4] == s:
+                            ff = True
+                            break
+
+                    if ff:
+                        self.flag_idle.set()
+                    else:
+                        self.flag_idle.clear()
+
+    
 
             except Exception as e:
                 print( self.name,"--------error update status",e )
@@ -136,6 +146,7 @@ class Manager:
         try:
             self.flag_idle.clear()
             self.writer.write( msg.encode()+b"\r\n" )
+            print("8888888888",msg)
             await self.writer.drain()
 
         except Exception as e:

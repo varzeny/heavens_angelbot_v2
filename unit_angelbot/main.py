@@ -84,7 +84,7 @@ class Unit:
 
             try:
                 async for recv in self.rcs["websocket"]:
-                    print( type(recv),"recv =",recv )
+                    # print( type(recv),"recv =",recv )
 
                     msg = json.loads( recv )
                     await self.Q_unit.put( msg )
@@ -115,6 +115,7 @@ class Unit:
                     ],
                     "why":"update"
                 }
+                print(data)
                 msg = json.dumps( data )
                 await self.handle_send( msg )
 
@@ -215,6 +216,7 @@ class Unit:
                 if why == "request":
                     if what == "write":
                         await self.part["mobot"].handle_send( how )
+                        print("77777777777777",how)
 
             elif where == "cobot":
                 if why == "request":

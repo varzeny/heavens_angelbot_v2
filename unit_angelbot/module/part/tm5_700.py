@@ -60,6 +60,7 @@ class Manager:
             except Exception as e:
                 print( self.name,"--------error connect\n",e )
                 await asyncio.sleep(1)
+                continue
 
 
     async def handle_send(self, functionCode, rgAddr, rgCount, value = ()):
@@ -69,6 +70,7 @@ class Manager:
             msg = Modbus.encoding( functionCode, rgAddr, rgCount, value )
             self.writer.write( msg )
             await self.writer.drain()
+            await asyncio.sleep(2)
 
             recv = await self.reader.read(1024)
 
@@ -79,6 +81,8 @@ class Manager:
             
             # read 가 아닐 경우
             try:
+                await asyncio.sleep(5)
+
                 msg = Modbus.encoding( 3,9101,1 )
                 res = [100]
                 while res[0] != 0:
@@ -87,7 +91,7 @@ class Manager:
                     await self.writer.drain()
                     recv = await self.reader.read(1024)
                     res = Modbus.decoding(recv)
-                    # print( "corrent rg9101 =",res )
+                    print( "~~~~~~~~~~~~~~~~~~~~~~~~~~corrent rg9101 =",res[0] )
 
                 self.flag_idle.set()
                 
