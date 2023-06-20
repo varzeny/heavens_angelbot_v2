@@ -125,7 +125,7 @@ class Manager:
                     self.status["temperature"] = int(dic["Temperature"])
 
                     ff = False
-                    for s in ["Stop","Dock","Comp","Fail","Sayi","Robo"]:
+                    for s in ["Stop","Comp","Fail","Dock","Sayi","Robo"]:
                         if self.status["status"][:4] == s:
                             ff = True
                             break
@@ -134,8 +134,6 @@ class Manager:
                         self.flag_idle.set()
                     else:
                         self.flag_idle.clear()
-
-    
 
             except Exception as e:
                 print( self.name,"--------error update status",e )
@@ -146,7 +144,6 @@ class Manager:
         try:
             self.flag_idle.clear()
             self.writer.write( msg.encode()+b"\r\n" )
-            print("8888888888",msg)
             await self.writer.drain()
 
         except Exception as e:

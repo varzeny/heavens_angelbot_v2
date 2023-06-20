@@ -54,7 +54,7 @@ class Manager:
                     asyncio.open_connection(self.addr[0],self.addr[1]),
                     timeout= 2.0
                 )
-                print( self.name,"success connect" )
+                print( self.name,"----------------success connect" )
                 break
 
             except Exception as e:
@@ -67,12 +67,13 @@ class Manager:
         self.flag_idle.clear()
         try:
             print( self.name,"call handle_send" )
-            msg = Modbus.encoding( functionCode, rgAddr, rgCount, value )
-            self.writer.write( msg )
-            await self.writer.drain()
-            await asyncio.sleep(2)
 
-            recv = await self.reader.read(1024)
+            for _ in range(4):  # 씹히지 않게 여러번 보냄
+                msg = Modbus.encoding( functionCode, rgAddr, rgCount, value )
+                self.writer.write( msg )
+                await self.writer.drain()
+                recv = await self.reader.read(1024)
+                await asyncio.sleep(0.5)
 
             if functionCode <= 4:   # read 일 경우
                 result = Modbus.decoding(recv)
@@ -81,8 +82,6 @@ class Manager:
             
             # read 가 아닐 경우
             try:
-                await asyncio.sleep(5)
-
                 msg = Modbus.encoding( 3,9101,1 )
                 res = [100]
                 while res[0] != 0:

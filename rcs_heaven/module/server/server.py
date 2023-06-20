@@ -27,7 +27,6 @@ class Webserver:
         self.app.websocket("/unit_connect")(self.unit_connect)
         self.app.get("/", response_class=HTMLResponse)(self.showPage_landing)
         self.app.get("/manageUnit", response_class=HTMLResponse)(self.showPage_manageUnit)
-        self.app.post("/test", response_class=HTMLResponse)(self.pb_test)
         self.app.post("/send2unit", response_class=HTMLResponse)(self.send2unit)
         # self.app.post("/pb_dbCreate")(self.registeUnit)
         # self.app.get("/dbRead")(self.dbRead)
@@ -64,6 +63,7 @@ class Webserver:
 
             except WebSocketDisconnect:
                 print(name,"연결이 종료됨")
+                del self.UNITS[name]
                 break
 
             except Exception as e:
@@ -72,7 +72,7 @@ class Webserver:
 
             try:
                 msg = json.loads( recv )
-                if (msg["why"] == "update") and (self.UNITS[name].go.is_set()):
+                if (msg["why"] == "update"):
                     self.UNITS[name].status = msg["how"]
                     if msg["how"][0]:
                         self.UNITS[name].flag_idle_cobot.set()
@@ -82,22 +82,20 @@ class Webserver:
                         self.UNITS[name].flag_idle_mobot.set()
                     else:
                         self.UNITS[name].flag_idle_mobot.clear()
-                    print(self.UNITS[name].status)
-                    continue
 
-                elif (msg["why"] == "update"):
+                    print(self.UNITS[name].status)
                     continue
 
                 await self.NETWORK.put( msg )
 
             except Exception as e:
-                print(name,"error 데이터 변환 혹은 큐에 넣기",e)
+                print(name,"error unit_connect",e)
                 continue
 
 
     async def reqWork(self, request: Request):
         data = await request.json()
-        print("555555555555555555555555555555555555555555",data)
+        print("server가","\n--------프론트에서 요청받음--------\n",data,"\n")
 
         msg = {
             "who":"front",
@@ -108,8 +106,6 @@ class Webserver:
             "why":"request"
         }
         await self.NETWORK.put( msg )
-        print(" 요청을 받아서 큐에 넣음 ")
-
 
         return {"data":"success"}
 
@@ -120,10 +116,6 @@ class Webserver:
         print(msg)
         await self.UNITS["unit_219"].handle_send( json.dumps(msg) )
 
-
-    async def pb_test(self, request: Request):
-        await self.UNITS["unit_219"].handle_send("버튼으로 동작함")
-        print("&&&&&")
 
 
     async def showPage_landing(self):

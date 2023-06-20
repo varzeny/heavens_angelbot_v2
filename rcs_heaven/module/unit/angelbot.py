@@ -14,18 +14,16 @@ class Manager:
         self.flag_idle_mobot = asyncio.Event(); self.flag_idle_mobot.set()
 
         self.task = {}
-        self.go = asyncio.Event(); self.go.set()
         self.status = [
             self.flag_idle_cobot.is_set(),
             self.flag_idle_mobot.is_set(),
             {
+                "status":"disconnect",
                 "battery":0,
                 "location":{
                     "x":0, "y":0, "theta":0
                 },
-                "tcp":{
-                    "x":0, "y":0, "z":0, "rx":0, "ry":0, "rz":0
-                }
+                "temperature":0
             }
         ]
         

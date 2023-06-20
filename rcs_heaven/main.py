@@ -36,7 +36,15 @@ class Rcs:
 
 
         # server start
-        await self.webserver.run()
+        try:
+            await self.webserver.run()
+
+        except Exception as e:
+            print(self.name,"error uvicorn server",e)
+
+        finally:
+            self.loop.stop()
+        
         print("종료됨")
 
 
@@ -75,52 +83,46 @@ class Rcs:
 
                     # print(works)
 
-                    # 테스크포스 #################################
+                    # 테스크포스 #############################################
                     for work_json in works:
                         work = json.loads(work_json)
-                        print("666666666666666666666666666666",work)
+                        await asyncio.sleep(1)
+
 
                         if work["work_type"] == "cobotCmd": ####################
-                            print("cobot 시작~~~~~~~~~~~~~~~~~~~~~~~!")
+
                             # 작업 시작 대기
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
+
                             # cobot에 명령 전달
                             await self.UNITS[ work["work_unit"] ].cobot_control(
                                 (16, 9101, 1, (int( f"{ work['work_cmd'] }" ),))
                             )
-                            print("cobot에 전달함 @@@@@@@@@@@@@@")
 
-                            self.UNITS[ work["work_unit"] ].go.clear()
-                            self.UNITS[ work["work_unit"] ].flag_idle_cobot.clear()
-                            await asyncio.sleep(3)
-                            self.UNITS[ work["work_unit"] ].go.set()
+                            # 작업 종료 기다리기
+                            await asyncio.sleep(4)
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             print(self.UNITS[ work["work_unit"] ],"cobotCmd 작업 완료")
 
 
                         elif work["work_type"] == "mobotCmd": ####################
-                            print("mobot 시작~~~~~~~~~~~~~~~~~~~~~~~!")
+
                             # 작업 시작 대기
                             await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
+
                             # mobot에 명령 전달
                             await self.UNITS[ work["work_unit"] ].mobot_control(
                                 f"{work['work_cmd']}"
                             )
-                            print("mobot에 전달함 @@@@@@@@@@@@@@")
-                            self.UNITS[ work["work_unit"] ].go.clear()
-                            self.UNITS[ work["work_unit"] ].flag_idle_mobot.clear()
-                            await asyncio.sleep(3)
-                            self.UNITS[ work["work_unit"] ].go.set()
+
+                            # 작업 종료 기다리기
+                            await asyncio.sleep(4)
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
                             print(self.UNITS[ work["work_unit"] ],"mobotCmd 작업 완료")
-
                         
-                        
-
-
-                    ############################################
+                    ###################################################
 
 
         except Exception as e:

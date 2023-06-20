@@ -100,10 +100,12 @@ class Unit:
 
         # 접속 대기 시간
         await asyncio.sleep(5)
+        print("--------status update start--------")
 
         while True:
             try:
                 data = {
+                    "why":"update",
                     "who":self.name,
                     "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
                     "where":"rcs",
@@ -112,10 +114,9 @@ class Unit:
                         self.part['cobot'].flag_idle.is_set(),
                         self.part['mobot'].flag_idle.is_set(),
                         self.part['mobot'].status
-                    ],
-                    "why":"update"
+                    ]
                 }
-                print(data)
+ 
                 msg = json.dumps( data )
                 await self.handle_send( msg )
 
@@ -134,41 +135,9 @@ class Unit:
             await self.rcs["websocket"].send( msg )
 
         except Exception as e:
-            print(self.name,"--------error websocket",e)
+            print(self.name,"--------error handle_send websocket",e)
 
 
-    ##################################################################
-
-    # async def listen(self):
-    #     print( "----------------call listen",self.name )
-    #     while True:
-    #         try:
-    #             server = await websockets.serve(
-    #                 self.handle_client,
-    #                 "127.0.0.1",
-    #                 9000
-    #             )
-
-    #         except Exception as e:
-    #             print("--------오류 listen")
-
-    #         finally:
-    #             await server.wait_closed()
-
-
-    # ##################################################################
-
-    # async def handle_client(self, websocket, path):
-    #     print(websocket.remote_address,"가 접속함")
-    #     try:
-    #         async for msg in websocket:
-    #             print( msg )
-
-    #         print( websocket.remote_address,"접속 끊어짐" )
-
-    #     except Exception as e:
-    #         print( "----------------error handle_client",e )
-    
     ##################################################################
 
     async def check_queue(self):
@@ -201,40 +170,26 @@ class Unit:
             how = msg["how"]
             why = msg["why"]
             
-            if where == "unit":
-                if why == "request":
-                    if what == "connect":
-                        pass
-
-                elif why == "response":
-                    pass
-
-                elif why == "update":
-                    pass
                     
-            elif where == "mobot":
+            if where == "mobot":
                 if why == "request":
                     if what == "write":
                         await self.part["mobot"].handle_send( how )
-                        print("77777777777777",how)
+                        print(
+                            "--------mobot에 전달 됨--------\n",
+                            how,
+                            "\n-----------------------------"
+                        )
 
             elif where == "cobot":
                 if why == "request":
                     if what == "write":
                         await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )
-                    elif what == "read":
-                        result = await self.part["cobot"].handle_send( how[0],how[1],how[2], how[3] )
-                        if who == "rcs":
-                            print(result,"를 rcs로 전송")
-                        elif who == "unit":
-                            print(result,"를 unit이 사용")
-
-                elif why == "response":
-                    pass
-
-                elif why == "update":
-                    if what == "status":
-                        pass
+                        print(
+                            "--------cobot에 전달 됨--------\n",
+                            how,
+                            "\n-----------------------------"
+                        )
                             
         except Exception as e:
             print( self.name,"error logic\n",e )
