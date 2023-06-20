@@ -23,6 +23,7 @@ class Webserver:
         self.app.mount("/static", StaticFiles(directory="./module/server/static"), name="static")
 
         # url 연결
+        self.app.post("/updateData")(self.updateData)
         self.app.post("/reqWork")(self.reqWork)
         self.app.websocket("/unit_connect")(self.unit_connect)
         self.app.get("/", response_class=HTMLResponse)(self.showPage_landing)
@@ -32,7 +33,7 @@ class Webserver:
         # self.app.get("/dbRead")(self.dbRead)
 
 
-    async def run(self):
+    async def run(self):    ###################################################
         print("서버모듈 기동함")
 
         try:
@@ -45,7 +46,16 @@ class Webserver:
         print("서버모듈 종료됨")
 
 
-    async def unit_connect(self, ws: WebSocket):
+    async def updateData(self): #######################################
+        data = {}
+        for unit in self.UNITS.values():
+            data[unit.name] = unit.status
+
+        return json.dumps( data )
+
+
+
+    async def unit_connect(self, ws: WebSocket):    ########################
         try:
             await ws.accept()
             name = await ws.receive_text()
@@ -83,7 +93,8 @@ class Webserver:
                     else:
                         self.UNITS[name].flag_idle_mobot.clear()
 
-                    print(self.UNITS[name].status)
+                    # print(self.UNITS[name].status)
+                    
                     continue
 
                 await self.NETWORK.put( msg )
@@ -93,7 +104,8 @@ class Webserver:
                 continue
 
 
-    async def reqWork(self, request: Request):
+
+    async def reqWork(self, request: Request):  ##########################
         data = await request.json()
         print("server가","\n--------프론트에서 요청받음--------\n",data,"\n")
 
@@ -110,7 +122,8 @@ class Webserver:
         return {"data":"success"}
 
 
-    async def send2unit(self, request: Request):
+
+    async def send2unit(self, request: Request):    #######################
         print("***************")
         msg = await request.json()
         print(msg)
@@ -118,11 +131,11 @@ class Webserver:
 
 
 
-    async def showPage_landing(self):
+    async def showPage_landing(self):   ##################################
         return FileResponse("./module/server/page/landing.html")
 
 
-    async def showPage_manageUnit(self):
+    async def showPage_manageUnit(self):    ###############################
         return FileResponse("./module/server/page/manageUnit.html")
 
     # async def registeUnit(self, request: Request):

@@ -125,7 +125,7 @@ class Manager:
                     self.status["temperature"] = int(dic["Temperature"])
 
                     ff = False
-                    for s in ["Stop","Comp","Fail","Dock","Sayi","Robo"]:
+                    for s in ["Stop","Comp","Fail","Arri","Erro","Dock","Sayi","Robo"]:
                         if self.status["status"][:4] == s:
                             ff = True
                             break

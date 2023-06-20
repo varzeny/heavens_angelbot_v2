@@ -29,8 +29,8 @@
             </div>
 
             <!-- 지도 -->
-            <div style="flex: 8; border: 4px solid black; padding: 4px;">
-                <img src="static/map/409map.png" style="width: 100%;">
+            <div id="div_map" style="flex: 8; border: 4px solid black; padding: 4px; position: relative;">
+                <img id="map" src="static/map/map_4f.png" style="position: relative; width: 100%;">
             </div>
 
             <!-- 작업 -->
@@ -127,7 +127,87 @@
 
         <script>
 
-            async function setWork( data ){
+            const REALSIZE = 13700;
+            const MISX = 800;
+            const MISY = -2500;
+            updateData();
+
+        
+            async function updateData(){////////////////////////////////
+                while(1){
+
+                    try{
+                        const respone = await fetch("/updateData",{method:"POST"});
+                        const data = await respone.json();
+                        const units = JSON.parse( data );
+                        // console.log( units );
+
+                        try{
+                            for( let name in units ){
+                                await updateUnit( name, units[name] );
+                            }
+                        }
+                        catch(error){
+                            console.log( "유닛 표시중 오류" );
+                        }
+                    }
+
+                    catch(error){
+                        console.log( "에러발생",error );
+                    }
+
+                    finally{
+                        await new Promise(resolve => setTimeout( resolve,1000 ));
+                    }
+                }
+                
+            }////////////////////////////////////////////////////////////
+
+
+
+            async function updateUnit( name, unit ){/////////////////////////////
+                console.log( unit[2]['location'] )
+                if( document.getElementById(name) ){
+
+                    const monitorsize = parseFloat( getComputedStyle( document.getElementById('map') ).width) 
+
+                    const maprate = REALSIZE / monitorsize
+
+                    // console.log( REALSIZE,monitorsize,maprate )
+
+                    console.log("마커 수정 작업");
+                    console.log( "x", ( unit[2]['location']['x']+MISX )/maprate )
+                    console.log( "y", ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) )
+
+
+                    img = document.getElementById(name);
+                    img.style.left = `${ ( unit[2]['location']['x']+MISX )/maprate }px`;
+                    img.style.top = `${ ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) }px`;
+                    img.style.transform = `rotate(-${ unit[2]['location']['theta'] }deg)`;
+
+                    // document.getElementById("div_map").appendChild( img );
+                }
+
+                else{
+                    console.log( "마커 추가" );
+                    img = document.createElement( 'img' );
+                    img.id = name;
+                    img.src = "static/icon/angelbot.png";
+                    img.style.width = "40px";
+                    img.style.height = "40px";
+                    img.style.position = "absolute";
+                    img.style.left = "-100px";
+                    img.style.top = "-100px";
+                    img.style.transform = "rotate(-0deg)";
+
+                    document.getElementById("div_map").appendChild( img );
+
+                }
+            }/////////////////////////////////////////////////////////////////
+
+
+
+            async function setWork( data ){////////////////////////////
                 // console.log( data )
 
                 pb_cmd = document.createElement('button');
@@ -137,9 +217,11 @@
                 }
 
                 document.getElementById('work_setting').appendChild( pb_cmd )
-            }
+            }///////////////////////////////////////////////////////////
 
-            async function addWork(){
+
+
+            async function addWork(){////////////////////////////////
                 work_name = document.getElementById('work_name').value
                 buttons = document.getElementById('work_setting').children;
 
@@ -180,11 +262,11 @@
 
 
                 document.getElementById('working').appendChild( div_works )
+            }/////////////////////////////////////////////////////////////
 
-            }
 
 
-            async function sendWork( data ){
+            async function sendWork( data ){/////////////////////////////
 
                 // console.log( data )
 
@@ -202,18 +284,21 @@
                         throw new Error('작업 전송 중 오류');
                     }
 
-                    console.log( response )
+                    // console.log( response )
 
                 }catch(error){
                     console.error('Error respone',error);
                 }
  
-            };
+            }////////////////////////////////////////////////////////
 
             
-            document.getElementById('pb_work').onclick = function(){
+
+            document.getElementById('pb_work').onclick = function(){//////////
                 document.getElementById('modal_work').style.display = 'block';
-            }
+            }//////////////////////////////////////////////////////
+
+
 
 
 
