@@ -113,12 +113,27 @@
         <div style="display: flex; border: 4px solid black; padding: 4px;">
 
             <div style="flex: 2; border: 4px solid black; padding: 4px;">
-                <label>HEAD IMAGE</label>
+                <label>STATUS</label><hr>
+                <label id="lbl_name">name</label><br>
+                <label id="lbl_idle_cobot">cobot_idle</label><br>
+                <label id="lbl_idle_mobot">mobot_idle</label><br>
+                <label id="lbl_status">status</label><br>
+                <label id="lbl_battery">battery</label><br>
+                <label id="lbl_temperature">temperature</label><br>
+                <label id="lbl_x">x</label>
+                <label id="lbl_y">y</label>
+                <label id="lbl_theta">theta</label>
 
             </div>
 
             <div style="flex: 8; border: 4px solid black; padding: 4px;">
-                <label>STATUS</label>
+                <label>etc</label><br>
+               
+                
+
+
+
+
 
             </div>
          
@@ -131,6 +146,10 @@
             const MISX = 800;
             const MISY = -2500;
             updateData();
+
+            async function clickUnit(){
+                console.log("작동")
+            }
 
         
             async function updateData(){////////////////////////////////
@@ -166,7 +185,7 @@
 
 
             async function updateUnit( name, unit ){/////////////////////////////
-                console.log( unit[2]['location'] )
+                // console.log( unit[2]['location'] )
                 if( document.getElementById(name) ){
 
                     const monitorsize = parseFloat( getComputedStyle( document.getElementById('map') ).width) 
@@ -175,9 +194,9 @@
 
                     // console.log( REALSIZE,monitorsize,maprate )
 
-                    console.log("마커 수정 작업");
-                    console.log( "x", ( unit[2]['location']['x']+MISX )/maprate )
-                    console.log( "y", ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) )
+                    // console.log("마커 수정 작업");
+                    // console.log( "x", ( unit[2]['location']['x']+MISX )/maprate )
+                    // console.log( "y", ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) )
 
 
                     img = document.getElementById(name);
@@ -189,7 +208,7 @@
                 }
 
                 else{
-                    console.log( "마커 추가" );
+                    // console.log( "마커 추가" );
                     img = document.createElement( 'img' );
                     img.id = name;
                     img.src = "static/icon/angelbot.png";
@@ -199,6 +218,9 @@
                     img.style.left = "-100px";
                     img.style.top = "-100px";
                     img.style.transform = "rotate(-0deg)";
+                    img.onclick = await function(){
+
+                    }
 
                     document.getElementById("div_map").appendChild( img );
 

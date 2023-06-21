@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 import json
+import subprocess
 from datetime import datetime
 
 from module.server.server import Webserver
@@ -34,6 +35,17 @@ class Rcs:
         # setup
         self.loop.create_task( self.checkQueue() )
 
+        try:    # mysql 실행
+            print("mysql 실행")
+            subprocess.run(
+                "sudo systemctl start mysql",
+                shell=True,
+                check=True
+            )
+
+        except Exception as e:
+            print( "mysql 시작 오류", e )
+
 
         # server start
         try:
@@ -44,6 +56,17 @@ class Rcs:
 
         finally:
             self.loop.stop()
+
+            try:    # mysql 정지
+                print("mysql 정지")
+                subprocess.run(
+                    "sudo systemctl stop mysql",
+                    shell=True,
+                    check=True
+                )
+
+            except Exception as e:
+                print( "mysql 정지 오류", e )
         
         print("종료됨")
 

@@ -3,10 +3,12 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
+
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from unit.angelbot import Manager as Angelbot
+from database.mysql import Manager as db
 
 import json
 from datetime import datetime    # datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" )
@@ -17,6 +19,13 @@ class Webserver:
         self.NETWORK = NETWORK
         self.UNITS = UNITS
         self.addr = addr
+        self.database = db(
+            "localhost",
+            3306,
+            "root",
+            "admin",
+            "rcs_heaven"
+        )
 
         # 서버 설정
         self.app = FastAPI()
@@ -34,8 +43,29 @@ class Webserver:
 
 
     async def run(self):    ###################################################
-        print("서버모듈 기동함")
+        print("mysql 연동 시작함")
+        try:
+            await self.database.run()
 
+        except Exception as e:
+            print("-------- error mysql run")
+
+
+        try:
+            async with self.database.pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        f"CREATE TABLE IF NOT EXISTS Goal (id INT AUTO_INCREMENT PRIMARY KEY, time DATETIME DEFAULT CURRENT_TIMESTAMP, type VARCHAR(255), x INT, y INT, theta INT)"
+                    )
+                    await conn.commit()
+            
+            await self.updateGoal()
+
+        except Exception as e:
+            print("-------- error mysql goal")
+
+
+        print("서버모듈 기동함")
         try:
             server = uvicorn.Server( uvicorn.Config( self.app, self.addr[0], self.addr[1] ) )
             await server.serve()
@@ -46,10 +76,16 @@ class Webserver:
         print("서버모듈 종료됨")
 
 
+
     async def updateData(self): #######################################
         data = {}
         for unit in self.UNITS.values():
             data[unit.name] = unit.status
+
+            #db에 추가
+            await self.database.update_table(unit.name,unit.status)
+            # await self.database.read_table(unit.name)
+
 
         return json.dumps( data )
 
@@ -66,6 +102,15 @@ class Webserver:
         except Exception as e:
             print("접속 과정 중 오류", e)
 
+
+        try:
+            await self.database.create_table( name )
+            print( name,"을 db에 추가함" )
+        
+        except Exception as e:
+            print( name,"을 db에 추가 실패함",e)
+
+
         while True:
             try:
                 recv = await ws.receive_text()
@@ -79,6 +124,7 @@ class Webserver:
             except Exception as e:
                 print(name,"데이터 수신중 오류",e)
                 continue
+
 
             try:
                 msg = json.loads( recv )
