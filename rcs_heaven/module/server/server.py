@@ -8,6 +8,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from unit.angelbot import Manager as Angelbot
+from unit.coffeebot import Manager as Coffee
 from database.mysql import Manager as db
 
 import json
@@ -32,6 +33,7 @@ class Webserver:
         self.app.mount("/static", StaticFiles(directory="./module/server/static"), name="static")
 
         # url 연결
+        self.app.post("/readTable")(self.readTable)
         self.app.post("/updateData")(self.updateData)
         self.app.post("/reqWork")(self.reqWork)
         self.app.websocket("/unit_connect")(self.unit_connect)
@@ -59,7 +61,6 @@ class Webserver:
                     )
                     await conn.commit()
             
-            await self.updateGoal()
 
         except Exception as e:
             print("-------- error mysql goal")
@@ -85,10 +86,17 @@ class Webserver:
             #db에 추가
             await self.database.update_table(unit.name,unit.status)
             # await self.database.read_table(unit.name)
-
+            # print(data)
 
         return json.dumps( data )
+    
 
+
+    async def readTable(self, request:Request): ########################
+        data = await request.json()
+        data = await self.database.read_table( data["name"] )
+        
+        return {"data":data}
 
 
     async def unit_connect(self, ws: WebSocket):    ########################
@@ -96,7 +104,13 @@ class Webserver:
             await ws.accept()
             name = await ws.receive_text()
             addr = ws.client.host
-            self.UNITS[name] = Angelbot(name, addr, ws)
+            if name == "unit_coffee":
+                self.UNITS[name] = Coffee(name, addr, ws)
+                print(name,"접속함")
+            else:
+                self.UNITS[name] = Angelbot(name, addr, ws)
+                print(name,"접속함")
+
             print(self.UNITS)
 
         except Exception as e:
@@ -153,7 +167,7 @@ class Webserver:
 
     async def reqWork(self, request: Request):  ##########################
         data = await request.json()
-        print("server가","\n--------프론트에서 요청받음--------\n",data,"\n")
+        # print("server가","\n--------프론트에서 요청받음--------\n",data,"\n")
 
         msg = {
             "who":"front",
@@ -172,7 +186,6 @@ class Webserver:
     async def send2unit(self, request: Request):    #######################
         print("***************")
         msg = await request.json()
-        print(msg)
         await self.UNITS["unit_219"].handle_send( json.dumps(msg) )
 
 

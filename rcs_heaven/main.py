@@ -144,6 +144,20 @@ class Rcs:
                             await asyncio.sleep(4)
                             await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
                             print(self.UNITS[ work["work_unit"] ],"mobotCmd 작업 완료")
+
+
+                        elif work["work_type"] == "coffeeCmd": ####################
+                            print("1111111111")
+                            # 작업 시작 대기
+                            await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
+                            print("2222222222222")
+                            # coffee 에 명령전달
+                            await self.UNITS[ work["work_unit"] ].coffee_control()
+                            print("333333333333333")
+                            # 작업 종료 기다리기
+                            await asyncio.sleep(4)
+                            await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
+                            print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
                         
                     ###################################################
 

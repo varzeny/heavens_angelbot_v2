@@ -5,7 +5,8 @@
 
     </head>
 
-    <body>
+    <body style="width: 70%;">
+
         <!-- 네비게이션 -->
         <div id="navi" style="border: 4px solid black; padding: 4px;">
             <label>NAVI</label>
@@ -29,15 +30,92 @@
             </div>
 
             <!-- 지도 -->
-            <div id="div_map" style="flex: 8; border: 4px solid black; padding: 4px; position: relative;">
+            <div id="div_map" style="flex: 9.5; border: 4px solid black; padding: 4px; position: relative;">
                 <img id="map" src="static/map/map_4f.png" style="position: relative; width: 100%;">
             </div>
 
-            <!-- 작업 -->
-            <div style="flex: 1.5; border: 4px solid black; padding: 4px;">
+
+        </div>
+
+
+        <!-- 하부 -->
+        <div style="display: flex; border: 4px solid black; padding: 4px;">
+
+            <div style="flex: 6; border: 4px solid black; padding: 4px;">
+                <label>STATUS</label><button id="pb_blackbox" onclick="(async function(){
+                    document.getElementById('modal_blackbox').style.display = 'block'
+
+                    try{
+                        const response = await fetch('/readTable',{
+                            method:'POST',
+                            headers:{
+                                'Content-Type':'application/json'
+                            },
+                            body:JSON.stringify({
+                                'name':document.getElementById('lbl_name').innerText
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        // console.log(response)
+                        const data = await response.json()
+                        console.log('$$$$$$$$$$$$$$$$')
+
+                        try{
+                            records= data['data'];
+
+                            document.getElementById('div_records').innerHTML = ''
+                            for(let r in records){
+                                lbl = document.createElement('lbl')
+                                lbl.innerText=records[r]
+                                document.getElementById('div_records').appendChild(lbl)
+                                document.getElementById('div_records').appendChild(
+                                    document.createElement('hr')
+                                )
+                            }
+
+                        }
+                        catch{
+                            console.log('db불러오기는 성공했는데 그 이후에 문제남')
+                        }
+
+                    }
+                    catch(error){
+                        console.log('운항기록 로드 에러');
+                    }
+                    
+                })()">운항기록</button>
+                <hr>
+                <label id="lbl_name">name</label><br>
+                <label id="lbl_idle_cobot">idle_cobot</label><br>
+                <label id="lbl_idle_mobot">idle_mobot</label><br>
+                <label id="lbl_status">status</label><br>
+                <label id="lbl_battery">battery</label><br>
+                <label id="lbl_temperature">temperature</label><br>
+                <label id="lbl_x">x</label>
+                <label id="lbl_y">y</label>
+                <label id="lbl_theta">theta</label>
+
+                <!-- modal 운항기록 -->
+                <div id="modal_blackbox" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 71%; top: 1%; background-color: rgb(221, 221, 221);">
+                    <label style="display: block; text-align: center;">운항기록</label>
+                    <hr>
+                    <div id="div_records">기록 없음</div>
+                    <hr>
+                    <button style="display: block; margin: auto;" onclick="(function(){
+                        document.getElementById('modal_blackbox').style.display='none';
+                    })();">닫기</button>
+
+                </div>
+
+            </div>
+
+            <div style="flex: 4; border: 4px solid black; padding: 4px;">
                 <label>WORK</label>
-                <button id="pb_work">작업 관리</button>
-                <hr/>
+                <button id="pb_work">작업 관리</button><hr>
 
                 <!-- 진행중인 작업 -->
                 <div id="working" style="border: 4px solid black; padding: 4px;">
@@ -45,7 +123,7 @@
                 </div>
 
                 <!-- 작업 모달 -->
-                <div id="modal_work" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 10%; top: 10%; background-color: rgb(221, 221, 221);">
+                <div id="modal_work" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 71%; top: 1%; background-color: rgb(221, 221, 221);">
 
                     <label style="display: block; text-align: center;">작업 관리창</label>
                     <hr/>
@@ -93,6 +171,20 @@
                             <label>ARCL CMD</label><input id="mobotCmd_value" type="text">
                         </div>
 
+                        <!-- coffee 명령 -->
+                        <div style="border: 4px solid black; margin: 4px;">
+                            <label>COFFEE Control</label>
+                            <button onclick="setWork(
+                                {
+                                    work_type:'coffeeCmd',
+                                    work_unit:document.getElementById('unit_coffee').value
+                                }
+                            )">명령 추가</button>
+                            <hr>
+                            <label>대상</label><input id="unit_coffee" type="text">
+
+                        </div>
+
                     </div>
 
                     <hr/>
@@ -105,39 +197,10 @@
 
 
             </div>
-
+        
         </div>
 
 
-        <!-- 하부 -->
-        <div style="display: flex; border: 4px solid black; padding: 4px;">
-
-            <div style="flex: 2; border: 4px solid black; padding: 4px;">
-                <label>STATUS</label><hr>
-                <label id="lbl_name">name</label><br>
-                <label id="lbl_idle_cobot">cobot_idle</label><br>
-                <label id="lbl_idle_mobot">mobot_idle</label><br>
-                <label id="lbl_status">status</label><br>
-                <label id="lbl_battery">battery</label><br>
-                <label id="lbl_temperature">temperature</label><br>
-                <label id="lbl_x">x</label>
-                <label id="lbl_y">y</label>
-                <label id="lbl_theta">theta</label>
-
-            </div>
-
-            <div style="flex: 8; border: 4px solid black; padding: 4px;">
-                <label>etc</label><br>
-               
-                
-
-
-
-
-
-            </div>
-         
-        </div>
 
 
         <script>
@@ -204,11 +267,27 @@
                     img.style.top = `${ ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) }px`;
                     img.style.transform = `rotate(-${ unit[2]['location']['theta'] }deg)`;
 
+                    img.setAttribute('data-info', JSON.stringify(unit))
+                    // console.log(document.getElementById('lbl_name').innerText)
+
+                    if(document.getElementById('lbl_name').innerText == name){
+
+                        document.getElementById('lbl_idle_cobot').innerText = "idle_cobot : "+unit[0];
+                        document.getElementById('lbl_idle_mobot').innerText = "idle_mobot : "+unit[1];
+                        document.getElementById('lbl_status').innerText = "status : "+unit[2]['status'];
+                        document.getElementById('lbl_battery').innerText = "battery : "+unit[2]['battery'];
+                        document.getElementById('lbl_temperature').innerText = "temperature : "+unit[2]['temperature'];
+                        document.getElementById('lbl_x').innerText = "x : "+unit[2]['location']['x'];
+                        document.getElementById('lbl_y').innerText = "y: "+unit[2]['location']['y'];
+                        document.getElementById('lbl_theta').innerText = "theta : "+unit[2]['location']['theta'];
+                    }
+
+
                     // document.getElementById("div_map").appendChild( img );
                 }
 
                 else{
-                    // console.log( "마커 추가" );
+                    console.log( "마커 추가",name );
                     img = document.createElement( 'img' );
                     img.id = name;
                     img.src = "static/icon/angelbot.png";
@@ -218,8 +297,12 @@
                     img.style.left = "-100px";
                     img.style.top = "-100px";
                     img.style.transform = "rotate(-0deg)";
+                    // img.setAttribute('data-info', "")
                     img.onclick = await function(){
+                        const data = JSON.parse(this.getAttribute('data-info'));
 
+                        document.getElementById('lbl_name').innerText = this.id;
+                        
                     }
 
                     document.getElementById("div_map").appendChild( img );
@@ -311,7 +394,7 @@
                 }catch(error){
                     console.error('Error respone',error);
                 }
- 
+
             }////////////////////////////////////////////////////////
 
             
@@ -325,7 +408,6 @@
 
 
         </script>
-
 
     </body>
 </html>
