@@ -155,7 +155,7 @@ class Rcs:
                             await self.UNITS[ work["work_unit"] ].coffee_control()
                             print("333333333333333")
                             # 작업 종료 기다리기
-                            await asyncio.sleep(4)
+                            await asyncio.sleep(55)
                             await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
                             print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
                         

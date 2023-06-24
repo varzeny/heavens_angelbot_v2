@@ -32,7 +32,6 @@ class Unit:
                 "192.168.215.123",
                 "NRMK-Indy7"
             )
-            self.coffee.connect()
             self.loop = asyncio.get_event_loop()
             self.loop.create_task( self.main() )
             self.loop.run_forever()
@@ -86,6 +85,8 @@ class Unit:
                     for n in range(3):
                         try:
                             print(f"{n} try start_current_program")
+                            self.coffee.connect()
+                            await asyncio.sleep(1)
                             self.coffee.start_current_program()
                             await asyncio.sleep(1)
 

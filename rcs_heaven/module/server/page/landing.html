@@ -5,7 +5,7 @@
 
     </head>
 
-    <body style="width: 70%;">
+    <body style="width: 98%;">
 
         <!-- 네비게이션 -->
         <div id="navi" style="border: 4px solid black; padding: 4px;">
@@ -23,7 +23,7 @@
             <div style="flex: 0.5; border: 4px solid black; padding: 4px;">
                 <label>FLOOR</label>
                 <hr/>
-
+                <button style="width: 100%;">4 층</button>
                 <button style="width: 100%;">3 층</button>
                 <button style="width: 100%;">2 층</button>
                 <button style="width: 100%;">1 층</button>      
@@ -31,7 +31,7 @@
 
             <!-- 지도 -->
             <div id="div_map" style="flex: 9.5; border: 4px solid black; padding: 4px; position: relative;">
-                <img id="map" src="static/map/map_4f.png" style="position: relative; width: 100%;">
+                <img id="map" src="static/map/robotcampus4f.png" style="position: relative; width: 100%;">
             </div>
 
 
@@ -123,7 +123,7 @@
                 </div>
 
                 <!-- 작업 모달 -->
-                <div id="modal_work" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 71%; top: 1%; background-color: rgb(221, 221, 221);">
+                <div id="modal_work" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 30%; top: 10%; background-color: rgb(221, 221, 221);">
 
                     <label style="display: block; text-align: center;">작업 관리창</label>
                     <hr/>
@@ -177,11 +177,11 @@
                             <button onclick="setWork(
                                 {
                                     work_type:'coffeeCmd',
-                                    work_unit:document.getElementById('unit_coffee').value
+                                    work_unit:document.getElementById('coffeeCmd_unit').value
                                 }
                             )">명령 추가</button>
                             <hr>
-                            <label>대상</label><input id="unit_coffee" type="text">
+                            <label>대상</label><input id="coffeeCmd_unit" type="text">
 
                         </div>
 
@@ -205,9 +205,9 @@
 
         <script>
 
-            const REALSIZE = 13700;
-            const MISX = 800;
-            const MISY = -2500;
+            const REALSIZE = 65400;
+            const MISX = 33580;
+            const MISY = -6000;
             updateData();
 
             async function clickUnit(){
@@ -226,6 +226,7 @@
 
                         try{
                             for( let name in units ){
+                                // console.log(units[name])
                                 await updateUnit( name, units[name] );
                             }
                         }
@@ -248,9 +249,9 @@
 
 
             async function updateUnit( name, unit ){/////////////////////////////
-                // console.log( unit[2]['location'] )
+                // console.log( name,unit )
                 if( document.getElementById(name) ){
-
+                    // console.log(name)
                     const monitorsize = parseFloat( getComputedStyle( document.getElementById('map') ).width) 
 
                     const maprate = REALSIZE / monitorsize
@@ -265,7 +266,7 @@
                     img = document.getElementById(name);
                     img.style.left = `${ ( unit[2]['location']['x']+MISX )/maprate }px`;
                     img.style.top = `${ ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) }px`;
-                    img.style.transform = `rotate(-${ unit[2]['location']['theta'] }deg)`;
+                    img.style.transform = `rotate(${ 360-unit[2]['location']['theta'] }deg)`;
 
                     img.setAttribute('data-info', JSON.stringify(unit))
                     // console.log(document.getElementById('lbl_name').innerText)
@@ -288,15 +289,24 @@
 
                 else{
                     console.log( "마커 추가",name );
+                    // console.log(name)
                     img = document.createElement( 'img' );
                     img.id = name;
-                    img.src = "static/icon/angelbot.png";
-                    img.style.width = "40px";
-                    img.style.height = "40px";
+                    if(name[5] != "c"){
+                        img.src = "static/icon/angelbot.png";
+                        img.style.width = "20px";
+                        img.style.height = "20px";
+                    }
+                    else{
+                        img.src = "static/icon/coffee.png";
+                        img.style.width = "30px";
+                        img.style.height = "30px";
+                    }
+                       
                     img.style.position = "absolute";
                     img.style.left = "-100px";
                     img.style.top = "-100px";
-                    img.style.transform = "rotate(-0deg)";
+                    img.style.transform = "rotate(0deg)";
                     // img.setAttribute('data-info', "")
                     img.onclick = await function(){
                         const data = JSON.parse(this.getAttribute('data-info'));
@@ -357,6 +367,10 @@
 
                 pb_delete = document.createElement('button');
                     pb_delete.innerText = "delete"
+                    pb_delete.setAttribute('data-name',work_name)
+                    pb_delete.onclick = function(){
+                        document.getElementById(this.getAttribute('data-name')).remove();
+                    }
 
                 div_works.appendChild( lbl );
                 div_works.appendChild( document.createElement('br') );

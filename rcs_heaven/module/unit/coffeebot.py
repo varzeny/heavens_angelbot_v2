@@ -12,10 +12,10 @@ class Manager:
             self.flag_idle_coffee.is_set(),
             True,
             {
-                "status":"disconnect",
+                "status":"connect",
                 "battery":0,
                 "location":{
-                    "x":9000, "y":200, "theta":0
+                    "x":9600, "y":2200, "theta":0
                 },
                 "temperature":0
             }
