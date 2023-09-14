@@ -1,4 +1,4 @@
-#!/home/varzeny/project/portfolio/23_PG047/venv/bin/python
+#!/home/varzeny/prj/public/23_PG047/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

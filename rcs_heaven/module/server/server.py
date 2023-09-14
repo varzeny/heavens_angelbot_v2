@@ -50,7 +50,7 @@ class Webserver:
             await self.database.run()
 
         except Exception as e:
-            print("-------- error mysql run")
+            print("-------- error mysql run",e)
 
 
         try:
