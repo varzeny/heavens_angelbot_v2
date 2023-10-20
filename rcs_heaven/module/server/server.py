@@ -42,6 +42,7 @@ class Webserver:
         self.app.post("/send2unit", response_class=HTMLResponse)(self.send2unit)
         # self.app.post("/pb_dbCreate")(self.registeUnit)
         # self.app.get("/dbRead")(self.dbRead)
+        self.app.post("/f2b_json")(self.f2b_json)
 
 
     async def run(self):    ###################################################
@@ -76,6 +77,25 @@ class Webserver:
 
         print("서버모듈 종료됨")
 
+
+    async def f2b_json(self, request:Request): ##################################
+        try:
+            recv = await request.json()
+            await self.NETWORK.put(recv)
+
+            response = {
+                "status": "success",
+                "message": "Data received and printed."
+            }
+            return response
+
+        except Exception as e:
+            print(f"Error while processing the request: {e}")
+            response = {
+                "status": "error",
+                "message": f"Error: {e}"
+            }
+            return response
 
 
     async def updateData(self): #######################################

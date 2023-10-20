@@ -93,6 +93,10 @@ class Rcs:
             how = msg["how"]
             why = msg["why"]
 
+        except Exception as e:
+            print("메세지 포맷화 관련 오류",e)
+
+        try:
             if where == "logic":
                 if what == "work":
                     works = []
@@ -160,7 +164,10 @@ class Rcs:
                             print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
                         
                     ###################################################
-
+            elif where == "unit_coffee":
+                if what == "make":
+                    if how == "coffee":
+                        await self.UNITS[where].handle_send( json.dumps(msg) )
 
         except Exception as e:
             print( self.name,f"logic 에서 msg : {msg} 처리중에 오류",e )
