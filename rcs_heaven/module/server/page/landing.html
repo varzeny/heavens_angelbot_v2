@@ -12,8 +12,9 @@
             <label>NAVI</label>
 
             <a href="/"><button>모니터링</button></a>
+            <a href="/manageWork"><button>작업 관리</button></a>
             <a href="/manageUnit"><button>유닛 관리</button></a>
-            <button>재고 관리</button>
+
         </div>
 
         <!-- 몸통 -->
@@ -90,14 +91,19 @@
                 })()">운항기록</button>
                 <hr>
                 <label id="lbl_name">name</label><br>
-                <label id="lbl_idle_cobot">idle_cobot</label><br>
+                <label id="lbl_flag_idle">status</label><br>
+                <label id="lbl_work">status</label><br>
+                <label id="lbl_work_n">status</label><br>
+                <label id="lbl_parts">status</label><br>
+
+                <!-- <label id="lbl_idle_cobot">idle_cobot</label><br>
                 <label id="lbl_idle_mobot">idle_mobot</label><br>
                 <label id="lbl_status">status</label><br>
                 <label id="lbl_battery">battery</label><br>
                 <label id="lbl_temperature">temperature</label><br>
                 <label id="lbl_x">x</label>
                 <label id="lbl_y">y</label>
-                <label id="lbl_theta">theta</label>
+                <label id="lbl_theta">theta</label> -->
 
                 <!-- modal 운항기록 -->
                 <div id="modal_blackbox" style="display: none; border: 4px solid black; position: fixed; z-index: 1; left: 71%; top: 1%; background-color: rgb(221, 221, 221);">
@@ -200,25 +206,133 @@
         
         </div>
 
-        <button onclick="f2b_json()">Send Coffee</button>
+        <div style="display: flex; border: 4px solid black; padding: 4px;">
+            <!-- <div style="flex: 3; border: 4px solid black; padding: 4px;">   
+                <input type="text" id="input_why" placeholder="why"><br>
+                <input type="text" id="input_where" placeholder="where"><br>
+                <input type="text" id="input_what" placeholder="what"><br>
+                <input type="text" id="input_how" placeholder="how"><br>
+                <input type="text" id="input_who" placeholder="who"><br>
+                <input type="text" id="input_when" placeholder="when"><br>      
+                <button onclick="f2b_json()">MSG send</button>
+            </div> -->
+
+            <div id="act_cmd" style="flex: 3; border: 4px solid black; padding: 4px;">   
+                <input type="text" id="input_actName" placeholder="actName"><hr/>
+                <input type="text" id="input_why" placeholder="why"><br>
+                <input type="text" id="input_where" placeholder="where"><br>
+                <input type="text" id="input_what" placeholder="what"><br>
+                <input type="text" id="input_how" placeholder="how"><br>
+                <input type="text" id="input_who" placeholder="who"><br>
+                <input type="text" id="input_when" placeholder="when"><br>      
+                <button onclick="act2work()">MSG add</button>
+            </div>
+
+            <div style="flex: 4; border: 4px solid black; padding: 4px;">   
+                <div id="work_cmd">
+
+                </div>
+                <hr/>
+                <button onclick="f2b_work()">WORK send</button>
+            </div>
+
+        </div>
+
 
         <script>
 
             const REALSIZE = 65400;
             const MISX = 33580;
             const MISY = -6000;
+
+            let UNITS = {};
+            
             updateData();
 
-            async function f2b_json() {
+            async function f2b_work(){
+                const list_work = [];
+
+                // "work_cmd" 요소 내부의 모든 div 요소들을 선택합니다.
+                const divs = document.getElementById("work_cmd").querySelectorAll("div");
+
+                // 각 div 요소에 대해 반복을 수행하면서 dataset.msg 값을 배열에 추가합니다.
+                divs.forEach(div => {
+                    if(div.dataset.msg) {
+                        list_work.push(div.dataset.msg);
+                    }
+                });
+                // console.log(list_work);  // 확인용
+
+                /////////////////////////////
+
+                data = {
+                    "why": "request",
+                    "where": "rcs",
+                    "what": "work",
+                    "how": list_work,
+                    "who": "front",
+                    "when": "now"
+                    };
+
+                f2b_json(data);
+            }
+
+            async function act2work(){
+                jsonData = {
+                    "name": document.getElementById("input_actName").value,
+                    "why": document.getElementById("input_why").value,
+                    "where": document.getElementById("input_where").value,
+                    "what": document.getElementById("input_what").value,
+                    "how": document.getElementById("input_how").value,
+                    "who": document.getElementById("input_who").value,
+                    "when": document.getElementById("input_when").value
+                    };
+                console.log(jsonData);
+
+
+                div = document.createElement("div");
+                div.id = jsonData["name"];
+                div.innerText = jsonData["name"];
+                div.dataset.msg = JSON.stringify(jsonData);
                 
-                const jsonData = {
-                    "who": "rcs",
-                    "when": "now",
-                    "where":"unit_coffee",
-                    "what":"make",
-                    "how":"coffee",
-                    "why":"request"
+                // 버튼 1 생성 및 설정
+                let button1 = document.createElement("button");
+                button1.innerText = "제거";
+                button1.onclick = function() {
+                    console.log("버튼 1 클릭됨");
+                    this.parentNode.remove();
                 };
+                div.appendChild(button1);
+
+                // 버튼 2 생성 및 설정
+                let button2 = document.createElement("button");
+                button2.innerText = "버튼 2";
+                button2.onclick = function() {
+                    console.log("버튼 2 클릭됨");
+                };
+                div.appendChild(button2);
+
+                
+                document.getElementById("work_cmd").appendChild(div);
+            }
+
+
+
+            async function f2b_json(inputdata=null) {
+                let jsonData;
+                
+                if (inputdata !== null){
+                    jsonData = inputdata
+                }else{
+                    jsonData = {
+                    "why": document.getElementById("input_why").value,
+                    "where": document.getElementById("input_where").value,
+                    "what": document.getElementById("input_what").value,
+                    "how": document.getElementById("input_how").value,
+                    "who": document.getElementById("input_who").value,
+                    "when": document.getElementById("input_when").value
+                    };
+                }
 
                 try {
                     // POST 요청을 보냅니다.
@@ -249,15 +363,18 @@
 
                     try{
                         const respone = await fetch("/updateData",{method:"POST"});
-                        const data = await respone.json();
-                        const units = JSON.parse( data );
-                        // console.log( units );
+                        const jsonData = await respone.json();
+                        UNITS = JSON.parse( jsonData );
 
                         try{
-                            for( let name in units ){
-                                // console.log(units[name])
-                                await updateUnit( name, units[name] );
-                            }
+                            // console.log( UNITS );
+                            await updateUnits();
+
+                            // for( let name in units ){
+                            //     await updateUnit( name, units[name] );
+                            // }
+
+
                         }
                         catch(error){
                             console.log( "유닛 표시중 오류" );
@@ -275,7 +392,69 @@
                 
             }////////////////////////////////////////////////////////////
 
+            async function updateUnits(){
+                for (let name in UNITS){
+                    console.log( name,"====",UNITS[name] )
 
+                    if( document.getElementById(name) ){
+                        // console.log(name)
+                        const monitorsize = parseFloat( getComputedStyle( document.getElementById('map') ).width) 
+
+                        const maprate = REALSIZE / monitorsize
+
+                        // console.log( REALSIZE,monitorsize,maprate )
+
+                        // console.log("마커 수정 작업");
+                        // console.log( "x", ( unit[2]['location']['x']+MISX )/maprate )
+                        // console.log( "y", ( ( unit[2]['location']['y']+MISY )/maprate)*(-1) )
+
+
+                        img = document.getElementById(name);
+                        img.style.left = `${ ( UNITS[name]['location']['x']+MISX )/maprate }px`;
+                        img.style.top = `${ ( ( UNITS[name]['location']['y']+MISY )/maprate)*(-1) }px`;
+                        img.style.transform = `rotate(${ 360-UNITS[name]['location']['theta'] }deg)`;
+
+                        if(document.getElementById('lbl_name').innerText == name){
+                            let data = UNITS[name];
+                            document.getElementById('lbl_flag_idle').innerText = data["flag_idle"];
+                            document.getElementById('lbl_work').innerText = data["work"];
+                            document.getElementById('lbl_work_n').innerText = data["work_n"];
+                            document.getElementById('lbl_parts').innerText = JSON.stringify(["parts"]);
+                        
+                        }
+
+                    }else{
+                        console.log( "마커 추가",name );
+                        // console.log(name)
+                        img = document.createElement( 'img' );
+                        img.id = name;
+                        if(name[5] != "c"){
+                            img.src = "static/icon/angelbot.png";
+                            img.style.width = "20px";
+                            img.style.height = "20px";
+                        }
+                        else{
+                            img.src = "static/icon/coffee.png";
+                            img.style.width = "30px";
+                            img.style.height = "30px";
+                        }
+                        
+                        img.style.position = "absolute";
+                        img.style.left = "-100px";
+                        img.style.top = "-100px";
+                        img.style.transform = "rotate(0deg)";
+                        // img.setAttribute('data-info', "")
+                        img.onclick = await function(){
+                            const data = JSON.parse(this.getAttribute('data-info'));
+
+                            document.getElementById('lbl_name').innerText = this.id;
+                            
+                        }
+
+                        document.getElementById("div_map").appendChild( img );
+                    }
+                }
+            }
 
             async function updateUnit( name, unit ){/////////////////////////////
                 // console.log( name,unit )

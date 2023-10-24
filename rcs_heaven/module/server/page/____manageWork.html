@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <style>
+            /* CSS 추가 */
+            #work_tree {
+                height: 600px;
+            }
+        </style>
+    </head>
+<body>
+    <div id="add_node" style="border: 4px solid black; margin: 2px;">
+        <label>노드</label><br>
+        <input type="text" id="input_parent" placeholder="parent"><br>
+        <input type="text" id="input_name" placeholder="name"><br><br>
+        <label>메세지</label><br>
+        <input type="text" id="input_why" placeholder="why"><br>
+        <input type="text" id="input_where" placeholder="where"><br>
+        <input type="text" id="input_what" placeholder="what"><br>
+        <input type="text" id="input_how" placeholder="how"><br>
+        <input type="text" id="input_who" placeholder="who"><br>
+        <input type="text" id="input_when" placeholder="when"><br>
+        <button onclick="addNode(document.getElementById('input_parent').value)">노드 등록</button>
+        <button onclick="showTree()">트리 시각화</button>
+
+    </div>
+    <button onclick="breadthFirstSearch('root')">너비우선 탐색 시작</button>
+
+    <div id="work_tree" style="border: 1px solid black; width: 100%; height: 100%;"></div>
+
+    <script>
+        const svgWidth = 800; // 추가: SVG의 너비를 정의합니다.
+        const svgHeight = 600; // 추가: SVG의 높이를 정의합니다.
+
+
+        const svg = d3.select("#work_tree")
+            .append("svg")
+            .attr("width", svgWidth)
+            .attr("height", svgHeight);
+        
+        let nodes = [
+            {id: 'root', parent: null, depth: 0, msg: null}
+        ];
+
+        showTree();
+
+        ////////////////////////////////////////////////////////////////////////////////
+        
+        function addNode(parentId) {
+
+            let jsonData = {
+                "why": document.getElementById("input_why").value,
+                "where": document.getElementById("input_where").value,
+                "what": document.getElementById("input_what").value,
+                "how": document.getElementById("input_how").value,
+                "who": document.getElementById("input_who").value,
+                "when": document.getElementById("input_when").value
+            };
+            // console.log(jsonData);
+
+            const parentNode = nodes.find(d => d.id === parentId);
+
+
+            const newNode = {
+                id: (nodes.length+1).toString() + document.getElementById("input_name").value, 
+                parent: parentId,
+                depth: parentNode.depth + 1,
+                msg: jsonData
+            };
+
+            nodes.push(newNode);
+
+            showTree();
+        }
+
+        //////////////////////////////////////////////////////////////////////////////
+ 
+
+        //////////////////////////////////////////////////////////////////////////
+
+        function breadthFirstSearch(startId) {
+            let queue = [];
+            let visited = [];
+
+            queue.push(startId); // 시작 노드를 큐에 추가
+
+            while(queue.length > 0) {
+                let currentId = queue.shift(); // 큐의 첫 번째 노드를 꺼냅니다.
+                let currentNode = nodes.find(node => node.id === currentId);
+
+                if(!visited.includes(currentId)) {
+                    visited.push(currentId);
+                    console.log(currentNode);  // 현재 노드 처리 (여기서는 콘솔에 출력)
+
+                    let children = nodes.filter(node => node.parent === currentId);
+                    for(let child of children) {
+                        queue.push(child.id);
+                    }
+                }
+            }
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+
+        function showTree() {
+            // SVG 내의 모든 내용을 초기화
+            svg.selectAll('*').remove();
+
+            // 노드를 계층적 구조로 변환
+            const root = d3.stratify()
+                .id(d => d.id)
+                .parentId(d => d.parent)
+                (nodes);
+
+            const width = +svg.attr("width");
+            const height = +svg.attr("height");
+
+            const treeLayout = d3.tree()
+                .size([svgHeight - 100, svgWidth - 200]);
+            treeLayout(root);
+
+            // 연결선 (link)를 그립니다.
+            const links = svg.selectAll(".link")
+                .data(root.links())
+                .enter().append("path")
+                .attr("class", "link")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", 1.5)
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x)
+                );
+
+            // 노드를 그립니다.
+            const nodesGroup = svg.selectAll(".node")
+                .data(root.descendants())
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.y}, ${d.x})`); 
+
+            nodesGroup.append("circle")
+                .attr("r", 5)
+                .attr("fill", "#999")
+                .on("click",function(event, d){
+                    console.log(d.data.msg);
+                });
+
+            nodesGroup.append("text")
+                .attr("dy", "-10")  // 원의 위쪽으로 텍스트를 이동
+                .attr("x", 0)       // 텍스트를 원의 중앙에 배치
+                .attr("text-anchor", "middle") // 텍스트를 중앙 정렬
+                .text(d => d.id)
+                .clone(true).lower()
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-width", 3)
+                .attr("stroke", "white");
+        }
+
+
+    </script>
+</body>
+</html>

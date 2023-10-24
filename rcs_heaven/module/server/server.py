@@ -38,11 +38,13 @@ class Webserver:
         self.app.post("/reqWork")(self.reqWork)
         self.app.websocket("/unit_connect")(self.unit_connect)
         self.app.get("/", response_class=HTMLResponse)(self.showPage_landing)
+        self.app.get("/manageWork",response_class=HTMLResponse)(self.showPage_manageWork)
         self.app.get("/manageUnit", response_class=HTMLResponse)(self.showPage_manageUnit)
         self.app.post("/send2unit", response_class=HTMLResponse)(self.send2unit)
         # self.app.post("/pb_dbCreate")(self.registeUnit)
         # self.app.get("/dbRead")(self.dbRead)
         self.app.post("/f2b_json")(self.f2b_json)
+        self.app.get("/showUnit")(self.showUnit)
 
 
     async def run(self):    ###################################################
@@ -96,17 +98,24 @@ class Webserver:
                 "message": f"Error: {e}"
             }
             return response
+        
+
+    async def showUnit(self):  ######################################
+        data = {}
+        for k, v in self.UNITS.items():
+            data[k] = v
+        
+        return json.dumps(data)
 
 
     async def updateData(self): #######################################
         data = {}
-        for unit in self.UNITS.values():
-            data[unit.name] = unit.status
+        for k,v in self.UNITS.items():
+            data[k] = v.status
 
-            #db에 추가
-            await self.database.update_table(unit.name,unit.status)
-            # await self.database.read_table(unit.name)
-            # print(data)
+            # #db에 추가
+            # await self.database.update_table(unit.name,unit.status)
+
 
         return json.dumps( data )
     
@@ -125,10 +134,10 @@ class Webserver:
             name = await ws.receive_text()
             addr = ws.client.host
             if name == "unit_coffee":
-                self.UNITS[name] = Coffee(name, addr, ws)
+                self.UNITS[name] = Coffee(self.UNITS, name, addr, ws)
                 print(name,"접속함")
             else:
-                self.UNITS[name] = Angelbot(name, addr, ws)
+                self.UNITS[name] = Angelbot(self.UNITS, name, addr, ws)
                 print(name,"접속함")
 
             print(self.UNITS)
@@ -152,6 +161,7 @@ class Webserver:
 
             except WebSocketDisconnect:
                 print(name,"연결이 종료됨")
+                self.UNITS[name].task["work_controller"].cancel()
                 del self.UNITS[name]
                 break
 
@@ -163,15 +173,26 @@ class Webserver:
             try:
                 msg = json.loads( recv )
                 if (msg["why"] == "update"):
-                    self.UNITS[name].status = msg["how"]
-                    if msg["how"][0]:
-                        self.UNITS[name].flag_idle_cobot.set()
-                    else:
-                        self.UNITS[name].flag_idle_cobot.clear()
-                    if msg["how"][1]:
-                        self.UNITS[name].flag_idle_mobot.set()
-                    else:
-                        self.UNITS[name].flag_idle_mobot.clear()
+                    for k in msg["how"]:
+                        self.UNITS[name].status["work"]=self.UNITS[name].work
+                        self.UNITS[name].status["work_n"]=self.UNITS[name].work_n
+
+                        if msg["how"]["flag_idle"] == True:
+                            self.UNITS[name].flag_idle.set()
+                        else:
+                            self.UNITS[name].flag_idle.clear()
+
+                        if self.UNITS[name].flag_idle_on == True:
+                            self.UNITS[name].status[k] = msg["how"][k]
+
+                    # if msg["how"][0]:
+                    #     self.UNITS[name].flag_idle_cobot.set()
+                    # else:
+                    #     self.UNITS[name].flag_idle_cobot.clear()
+                    # if msg["how"][1]:
+                    #     self.UNITS[name].flag_idle_mobot.set()
+                    # else:
+                    #     self.UNITS[name].flag_idle_mobot.clear()
 
                     # print(self.UNITS[name].status)
                     
@@ -209,6 +230,8 @@ class Webserver:
         await self.UNITS["unit_219"].handle_send( json.dumps(msg) )
 
 
+    async def showPage_manageWork(self):
+        return FileResponse("./module/server/page/manageWork.html")
 
     async def showPage_landing(self):   ##################################
         return FileResponse("./module/server/page/landing.html")

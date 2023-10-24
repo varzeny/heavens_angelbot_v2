@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Manage Unit</title>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+    </head>
+
+    <body>
+        <!-- 네비게이션 -->
+        <div id="navi" style="border: 4px solid black; margin: 2px;">
+            <label>NAVI</label>
+            
+            <a href="/"><button>모니터링</button></a>
+            <a href="/manageWork"><button>작업 관리</button></a>
+            <a href="/manageUnit"><button>유닛 관리</button></a>
+        </div>
+
+        <!-- 몸통 -->
+        <div style="display: flex;">
+
+            <div style="flex: 4;border: 4px solid black; margin: 2px;">
+                <label>노드 등록</label>
+                <div id="add_node" style="border: 4px solid black; margin: 2px;">
+                    <input type="text" id="input_name" placeholder="name"><br>
+                    <input type="text" id="input_why" placeholder="why"><br>
+                    <input type="text" id="input_where" placeholder="where"><br>
+                    <input type="text" id="input_what" placeholder="what"><br>
+                    <input type="text" id="input_how" placeholder="how"><br>
+                    <input type="text" id="input_who" placeholder="who"><br>
+                    <input type="text" id="input_when" placeholder="when"><br>      
+                    <!-- <button onclick="addNode()">노드 등록</button> -->
+                </div>
+            </div>
+
+
+            <div style="flex: 6;border: 4px solid black; margin: 2px;">
+                <label>작업 트리</label>
+                <div id="work_tree" style="border: 4px solid black; margin: 2px;">
+    
+                </div>
+            </div>
+
+
+            
+        </div>
+
+
+
+        <!-- <script src="/static/script/script_managework.js"></script> -->
+        <script>
+            
+        </script>
+
+    </body>
+</html>

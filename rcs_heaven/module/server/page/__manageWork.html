@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="add_node" style="border: 4px solid black; margin: 2px;">
+        <label>노드</label><br>
+        <input type="text" id="input_parent" placeholder="parent"><br>
+        <input type="text" id="input_name" placeholder="name"><br><br>
+        <label>메세지</label><br>
+        <input type="text" id="input_why" placeholder="why"><br>
+        <input type="text" id="input_where" placeholder="where"><br>
+        <input type="text" id="input_what" placeholder="what"><br>
+        <input type="text" id="input_how" placeholder="how"><br>
+        <input type="text" id="input_who" placeholder="who"><br>
+        <input type="text" id="input_when" placeholder="when"><br>
+        <button onclick="addNode(document.getElementById('input_parent').value)">노드 등록</button>
+    </div>
+    <button onclick="breadthFirstSearch('root')">너비우선 탐색 시작</button>
+
+    <div id="work_tree" style="border: 1px solid black; width: 100%; height: 100%;"></div>
+
+    <script>
+
+        width = document.querySelector("#work_tree").getBoundingClientRect().width;
+        height = document.querySelector("#work_tree").getBoundingClientRect().height;
+
+        const svg = d3.select("#work_tree")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%");
+
+        
+        let nodes = [
+            {id: 'root', parent: null, depth: 0, x: width/2, y: 30}
+        ];
+
+        renderTree()
+
+        ////////////////////////////////////////////////////////////////////////////////
+        
+        function addNode(parentId) {
+
+            let jsonData = {
+                "why": document.getElementById("input_why").value,
+                "where": document.getElementById("input_where").value,
+                "what": document.getElementById("input_what").value,
+                "how": document.getElementById("input_how").value,
+                "who": document.getElementById("input_who").value,
+                "when": document.getElementById("input_when").value
+            };
+            // console.log(jsonData);
+
+            const parentNode = nodes.find(d => d.id === parentId);
+
+
+            const newPosition = getNewPosition(parentNode);
+
+            const newNode = {
+                id: document.getElementById("input_name").value, 
+                parent: parentId,
+                depth: parentNode.depth + 1,
+                x: newPosition.x,
+                y: newPosition.y,
+                msg: jsonData
+            };
+
+            nodes.push(newNode);
+
+
+            renderTree();
+        }
+
+        //////////////////////////////////////////////////////////////////////////////
+        
+
+        /////////////////////////////////////////////////////////////////////////////////
+        function getNewPosition(parentNode) {
+
+            width = document.querySelector("#work_tree").getBoundingClientRect().width;
+            height = document.querySelector("#work_tree").getBoundingClientRect().height;
+            
+            const defaultDistance = 40; // 기본 노드와 노드 사이의 거리
+
+            // 부모 노드의 모든 자식 노드들을 찾습니다.
+            const childNodes = nodes.filter(node => node.parent === parentNode.id);
+
+            if (childNodes.length === 0) {
+                // 첫 번째 자식 노드인 경우, 부모 노드의 아래에 위치
+                return { x: parentNode.x-((width/256)*(2**(6-parentNode.depth*1.5))), y: parentNode.y + defaultDistance };
+            } else {
+                // 자식 노드들 중에서 x 좌표가 가장 큰 노드를 찾습니다.
+                const lastChild = childNodes.reduce((last, node) => {
+                    return (last.x > node.x) ? last : node;
+                });
+
+                // 가장 오른쪽 자식 노드의 x좌표에 +50을 하여 새로운 x 좌표를 결정합니다.
+                return { x: lastChild.x + ((width/256)*(2**(6-parentNode.depth*1.5))), y: parentNode.y + defaultDistance };
+            }
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////
+
+        function renderTree() {
+
+            const circles = svg.selectAll("circle").data(nodes, d => d.id);
+            const lines = svg.selectAll("line").data(nodes.filter(d => d.parent !== null), d => d.id);
+
+            lines.enter()
+                .append("line")
+                .attr("x1", d => {
+                    const parent = nodes.find(node => node.id === d.parent);
+                    return parent ? parent.x : 0; // 부모 노드가 존재하면 부모 노드의 x 좌표를 사용
+                })
+                .attr("y1", d => {
+                    const parent = nodes.find(node => node.id === d.parent);
+                    return parent ? parent.y : 0; // 부모 노드가 존재하면 부모 노드의 y 좌표를 사용
+                })
+                .attr("x2", d => d.x)
+                .attr("y2", d => d.y)
+                .attr("stroke", "black");
+
+            circles.enter()
+                .append("circle")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", 10)
+                .attr("fill", "blue")
+                .on("click", function () {
+                    // 노드를 클릭할 때 데이터를 console.log()에 출력
+                    let boundData = d3.select(this).datum();  // 바인딩된 데이터 접근
+                    console.log(boundData.msg);
+                });
+
+            circles.enter()
+                .append("text")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y - 17)
+                .attr("text-anchor", "middle")
+                .attr("dy", "0.35em")
+                .text(d => d.id);
+
+            circles.exit().remove();
+            lines.exit().remove();
+
+            // console.log(nodes)
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+
+        function breadthFirstSearch(startId) {
+            let queue = [];
+            let visited = [];
+
+            queue.push(startId); // 시작 노드를 큐에 추가
+
+            while(queue.length > 0) {
+                let currentId = queue.shift(); // 큐의 첫 번째 노드를 꺼냅니다.
+                let currentNode = nodes.find(node => node.id === currentId);
+
+                if(!visited.includes(currentId)) {
+                    visited.push(currentId);
+                    console.log(currentNode);  // 현재 노드 처리 (여기서는 콘솔에 출력)
+
+                    let children = nodes.filter(node => node.parent === currentId);
+                    for(let child of children) {
+                        queue.push(child.id);
+                    }
+                }
+            }
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+
+
+    </script>
+</body>
+</html>

@@ -83,7 +83,7 @@ class Rcs:
 
 
     async def logic(self, msg):
-        print("로직 시작",msg)
+        # print("로직 시작",msg)
         try:
             # print( msg )
             who = msg["who"]
@@ -164,6 +164,28 @@ class Rcs:
                             print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
                         
                     ###################################################
+            
+            elif where == "rcs":    #why: request, who:front, where:rcs, what:work, how:메세지들 
+                if what == "work":
+                    
+                    for data in how:
+                        act = json.loads(data)
+                        # print(act)
+                        if act["why"] == "direct":
+                            self.UNITS[act["where"]].work.append(self.UNITS[act["where"]].work_n+1,act)
+
+                        self.UNITS[act["where"]].work.append(act)
+                        await asyncio.sleep(1)
+
+
+
+            elif where == "unit_219":
+                if what == "move":
+                    await self.UNITS[where].flag_idle.wait()
+                    await self.UNITS[where].handle_send( json.dumps(msg))
+                    await asyncio.sleep(2)
+
+
             elif where == "unit_coffee":
                 if what == "make":
                     if how == "coffee":
@@ -171,6 +193,10 @@ class Rcs:
 
         except Exception as e:
             print( self.name,f"logic 에서 msg : {msg} 처리중에 오류",e )
+
+
+        finally:
+            print("로직 종료!")
 
 
 
