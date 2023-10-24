@@ -34,7 +34,8 @@ class Manager:
         self.reader = None
         self.writer = None
         self.flag_idle = asyncio.Event();    self.flag_idle.set()
-        self.tcp = {
+        self.status = {
+            "flag_idle":self.flag_idle.is_set(),
             "x":0,
             "y":0,
             "z":0,
@@ -103,6 +104,12 @@ class Manager:
 
         finally:
             print( self.name,"return handle_send" )
+
+
+    async def updateStatus(self):
+        while True:
+            self.status["flag_idle"]=self.flag_idle.is_set()
+            await asyncio.sleep(1)
 
 
 if __name__ == "__main__":

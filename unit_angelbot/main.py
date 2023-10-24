@@ -19,23 +19,36 @@ class Unit:
         # early set
         self.name = name
         self.Q_unit = asyncio.Queue()
+        self.flag_work = asyncio.Event(); self.flag_work.set()
+        self.flag_idle = asyncio.Event(); self.flag_idle.set(); self.flag_idle_on=True
         self.part = {
             "mobot":manager_ld_90( self.Q_unit, "mobot", ("10.10.10.10",7171) ),
             "cobot":manager_tm5_700( self.Q_unit, "cobot", ("192.168.1.11",502) )
         }
         # late set
-        self.loop = None
+        self.loop = asyncio.get_event_loop()
         self.rcs = {
             "addr":addr_rcs,
             "websocket":None
         }
         self.task = {}
+        self.status = {
+            "flag_idle":self.flag_idle.is_set(),
+            "location":{
+                "x":0,
+                "y":0,
+                "z":0
+            },
+            "parts":{
+                "mobot":self.part["mobot"].status,
+                "cobot":self.part["cobot"].status
+            }
+        }
 
 
     def run(self):
         try:
             print( self.name,"call run" )
-            self.loop = asyncio.get_event_loop()
             self.loop.create_task( self.main() )
             self.loop.run_forever()
 
@@ -58,6 +71,7 @@ class Unit:
             # self.task["listen"] = self.loop.create_task( self.listen() )
             self.task["check_queue"] = self.loop.create_task( self.check_queue() )
             self.task["check_status"] = self.loop.create_task( self.check_status() )
+
             ####################################################################
                  
         except Exception as e:
@@ -103,6 +117,23 @@ class Unit:
         print("--------status update start--------")
 
         while True:
+            print()
+            print("유닛 플래그",self.flag_idle.is_set())
+            print()
+            try:
+                if (self.part["mobot"].flag_idle.is_set()) and (self.part["cobot"].flag_idle.is_set()):
+                    self.flag_idle.set()
+                else:
+                    self.flag_idle.clear()
+                
+                self.status["flag_idle"] = self.flag_idle.is_set()
+                self.status["location"] = self.status["parts"]["mobot"]["location"]
+
+            except Exception as e:
+                print(self.name,"check_status_updateFlag error\n",e)
+                await asyncio.sleep(1)
+                continue
+
             try:
                 data = {
                     "why":"update",
@@ -110,11 +141,7 @@ class Unit:
                     "when":datetime.now().strftime( "%Y/%m/%d/%I/%M/%S/%f" ),
                     "where":"rcs",
                     "what":"status",
-                    "how":[
-                        self.part['cobot'].flag_idle.is_set(),
-                        self.part['mobot'].flag_idle.is_set(),
-                        self.part['mobot'].status
-                    ]
+                    "how":self.status
                 }
  
                 msg = json.dumps( data )
@@ -146,56 +173,81 @@ class Unit:
         while True:
             try:
                 msg = await self.Q_unit.get()
+                print(msg)
+                if msg["what"] == "move":
+                    await self.part["mobot"].handle_send( msg["how"] )
+
+                elif msg["what"] == "pnp":
+                    await self.part["cobot"].handle_send( 16, 9101, 1, (int(msg["how"]),) )
 
             except Exception as e:
                 print( self.name,"--------error check_queue\n",e )
                 continue
 
-            try:
-                self.loop.create_task( self.logic( msg ) )
+            # try:
+            #     self.loop.create_task( self.logic( msg ) )
 
-            except Exception as e:
-                print( self.name,"--------error msg2logic\n",e )
-                continue
+            # except Exception as e:
+            #     print( self.name,"--------error msg2logic\n",e )
+            #     continue
 
     ##################################################################
 
-    async def logic(self, msg):
 
-        try:
-            who = msg["who"]
-            when = msg["when"]
-            where = msg["where"]
-            what = msg["what"]
-            how = msg["how"]
-            why = msg["why"]
+
+
+    # async def logic(self, msg):
+
+    #     try:
+    #         who = msg["who"]
+    #         when = msg["when"]
+    #         where = msg["where"]
+    #         what = msg["what"]
+    #         how = msg["how"]
+    #         why = msg["why"]
             
+    #         if why == "request":
+    #             if what == "move":
+    #                 await self.part["mobot"].flag_idle.wait()
+    #                 self.flag_idle.clear()
+    #                 await self.part["mobot"].handle_send(how)
+    #                 await asyncio.sleep(2)
+    #                 await self.part["mobot"].flag_idle.wait()
+    #                 self.flag_idle.set()
+
+    #             elif what == "pnp":
+    #                 await self.part["cobot"].flag_idle.wait()
+    #                 self.flag_idle.clear()
+    #                 await self.part["cobot"].handle_send(how)
+    #                 await asyncio.sleep(2)
+    #                 await self.part["cobot"].flag_idle.wait()
+    #                 self.flag_idle.set()
                     
-            if where == "mobot":
-                if why == "request":
-                    if what == "write":
-                        await self.part["mobot"].handle_send( how )
-                        print(
-                            "--------mobot에 전달 됨--------\n",
-                            how,
-                            "\n-----------------------------"
-                        )
+    #         elif where == "mobot":
+    #             if why == "request":
+    #                 if what == "write":
+    #                     await self.part["mobot"].handle_send( how )
+    #                     print(
+    #                         "--------mobot에 전달 됨--------\n",
+    #                         how,
+    #                         "\n-----------------------------"
+    #                     )
 
-            elif where == "cobot":
-                if why == "request":
-                    if what == "write":
-                        await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )
-                        print(
-                            "--------cobot에 전달 됨--------\n",
-                            how,
-                            "\n-----------------------------"
-                        )
+    #         elif where == "cobot":
+    #             if why == "request":
+    #                 if what == "write":
+    #                     await self.part["cobot"].handle_send( how[0],how[1],how[2],how[3] )
+    #                     print(
+    #                         "--------cobot에 전달 됨--------\n",
+    #                         how,
+    #                         "\n-----------------------------"
+    #                     )
                             
-        except Exception as e:
-            print( self.name,"error logic\n",e )
+    #     except Exception as e:
+    #         print( self.name,"error logic\n",e )
 
-        finally:
-            return
+    #     finally:
+    #         return
         
     ##################################################################
 

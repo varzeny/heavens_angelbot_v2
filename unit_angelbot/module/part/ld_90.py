@@ -20,6 +20,7 @@ class Manager:
         self.flag_idle = asyncio.Event();    self.flag_idle.set()
         self.state = None
         self.status = {
+            "flag_idle":self.flag_idle.is_set(),
             "status":"disconnect",
             "battery":0,
             "temperature":0,
@@ -94,6 +95,9 @@ class Manager:
         print( self.name,"----------------call handle_mobot 7179",writer.get_extra_info("peername") )
 
         while True:
+            print()
+            print("amr 플래그",self.flag_idle.is_set())
+            print()
             try:
                 recv_b = await reader.read(1024)
                 if not recv_b:
@@ -145,6 +149,7 @@ class Manager:
             self.flag_idle.clear()
             self.writer.write( msg.encode()+b"\r\n" )
             await self.writer.drain()
+            await asyncio.sleep(2)
 
         except Exception as e:
             print( self.name,"error handle_send\n",e )

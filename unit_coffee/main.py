@@ -10,7 +10,7 @@ from indy_utils import indydcp_client as client
 
 ##################################################################
 class Unit:
-    def __init__(self, name="unit_coffee", addr_rcs=("192.168.212.193",8000)):
+    def __init__(self, name="unit_coffee", addr_rcs=("192.168.212.189",8000)):
         # early set
         self.name = name
         self.Q_unit = asyncio.Queue()
