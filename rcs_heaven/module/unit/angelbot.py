@@ -1,6 +1,7 @@
 from datetime import datetime
 import asyncio
 import json
+from datetime import datetime
 
 from fastapi import WebSocket, FastAPI
 
@@ -70,13 +71,37 @@ class Manager:
                     # await self.UNITS[msg["how"]].flag_idle.wait()
                     # await asyncio.sleep(2)
                     # await self.UNITS[msg["how"]].flag_idle.wait()
+                
 
-                    print(f"{self.UNITS[msg['how']]}의 플래그 True 됨~~~~~~~~~~~~~~~~~~~~~~~")
-                    print(self.UNITS[msg["how"]].flag_idle.is_set())
+                    # print(f"{self.UNITS[msg['how']]}의 플래그 True 됨~~~~~~~~~~~~~~~~~~~~~~~")
+                    # print(self.UNITS[msg["how"]].flag_idle.is_set())
+
+                elif msg["what"] == "time":
+                    # print( msg["how"] )
+                    # print(self.name,datetime.now())
+                    now = datetime.now()
+                    time_obj = datetime.strptime(msg["how"], "%H:%M:%S").time()
+
+                    # 오늘 날짜와 문자열에서 생성한 시간 객체를 결합합니다.
+                    combined_time = datetime.combine(now.date(), time_obj)
+
+                    # 시간 차이를 계산합니다.
+                    time_difference = combined_time - now
+
+                    # 결과를 초 단위로 출력하려면 total_seconds()를 사용합니다.
+                    seconds_difference = time_difference.total_seconds()
+
+                    if seconds_difference >= 0:
+                        print(self.name, seconds_difference, "만큼 대기 중")
+                        await asyncio.sleep(seconds_difference)
+                    else:
+                        print("시간차가 음수임!")
+
+
 
                 else:
                     await self.handle_send( msg )
-                    print("!!!!!!!!!!!!!!!")
+                    # print("!!!!!!!!!!!!!!!")
             
             except Exception as e:
                 print(self.name,"error work_controller\n",e)

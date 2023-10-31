@@ -84,6 +84,8 @@ class Rcs:
 
     async def logic(self, msg):
         # print("로직 시작",msg)
+        # print(datetime.now())
+
         try:
             # print( msg )
             who = msg["who"]
@@ -97,99 +99,100 @@ class Rcs:
             print("메세지 포맷화 관련 오류",e)
 
         try:
-            if where == "logic":
-                if what == "work":
-                    works = []
-                    n = 0
-                    while True:
-                        try:
-                            works.append( how[f"{str(n)}"] )
-                            n += 1
-                        except:
-                            break
+            if why == "request":
+                if where == "logic":
+                    if what == "work":
+                        works = []
+                        n = 0
+                        while True:
+                            try:
+                                works.append( how[f"{str(n)}"] )
+                                n += 1
+                            except:
+                                break
 
-                    # print(works)
+                        # print(works)
 
-                    # 테스크포스 #############################################
-                    for work_json in works:
-                        work = json.loads(work_json)
-                        await asyncio.sleep(1)
-
-
-                        if work["work_type"] == "cobotCmd": ####################
-
-                            # 작업 시작 대기
-                            await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
-                            await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
-
-                            # cobot에 명령 전달
-                            await self.UNITS[ work["work_unit"] ].cobot_control(
-                                (16, 9101, 1, (int( f"{ work['work_cmd'] }" ),))
-                            )
-
-                            # 작업 종료 기다리기
-                            await asyncio.sleep(4)
-                            await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
-                            print(self.UNITS[ work["work_unit"] ],"cobotCmd 작업 완료")
+                        # 테스크포스 #############################################
+                        for work_json in works:
+                            work = json.loads(work_json)
+                            await asyncio.sleep(1)
 
 
-                        elif work["work_type"] == "mobotCmd": ####################
+                            if work["work_type"] == "cobotCmd": ####################
 
-                            # 작업 시작 대기
-                            await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
-                            await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
+                                # 작업 시작 대기
+                                await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
+                                await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
 
-                            # mobot에 명령 전달
-                            await self.UNITS[ work["work_unit"] ].mobot_control(
-                                f"{work['work_cmd']}"
-                            )
+                                # cobot에 명령 전달
+                                await self.UNITS[ work["work_unit"] ].cobot_control(
+                                    (16, 9101, 1, (int( f"{ work['work_cmd'] }" ),))
+                                )
 
-                            # 작업 종료 기다리기
-                            await asyncio.sleep(4)
-                            await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
-                            print(self.UNITS[ work["work_unit"] ],"mobotCmd 작업 완료")
+                                # 작업 종료 기다리기
+                                await asyncio.sleep(4)
+                                await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
+                                print(self.UNITS[ work["work_unit"] ],"cobotCmd 작업 완료")
 
 
-                        elif work["work_type"] == "coffeeCmd": ####################
-                            print("1111111111")
-                            # 작업 시작 대기
-                            await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
-                            print("2222222222222")
-                            # coffee 에 명령전달
-                            await self.UNITS[ work["work_unit"] ].coffee_control()
-                            print("333333333333333")
-                            # 작업 종료 기다리기
-                            await asyncio.sleep(55)
-                            await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
-                            print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
+                            elif work["work_type"] == "mobotCmd": ####################
+
+                                # 작업 시작 대기
+                                await self.UNITS[ work["work_unit"] ].flag_idle_cobot.wait()
+                                await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
+
+                                # mobot에 명령 전달
+                                await self.UNITS[ work["work_unit"] ].mobot_control(
+                                    f"{work['work_cmd']}"
+                                )
+
+                                # 작업 종료 기다리기
+                                await asyncio.sleep(4)
+                                await self.UNITS[ work["work_unit"] ].flag_idle_mobot.wait()
+                                print(self.UNITS[ work["work_unit"] ],"mobotCmd 작업 완료")
+
+
+                            elif work["work_type"] == "coffeeCmd": ####################
+                                print("1111111111")
+                                # 작업 시작 대기
+                                await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
+                                print("2222222222222")
+                                # coffee 에 명령전달
+                                await self.UNITS[ work["work_unit"] ].coffee_control()
+                                print("333333333333333")
+                                # 작업 종료 기다리기
+                                await asyncio.sleep(55)
+                                await self.UNITS[ work["work_unit"] ].flag_idle_coffee.wait()
+                                print(self.UNITS[ work["work_unit"] ],"coffeeCmd 작업 완료")
+                            
+                        ###################################################
+                
+                elif where == "rcs":    #why: request, who:front, where:rcs, what:work, how:메세지들 
+                    if what == "work":
                         
-                    ###################################################
-            
-            elif where == "rcs":    #why: request, who:front, where:rcs, what:work, how:메세지들 
-                if what == "work":
-                    
-                    for data in how:
-                        act = json.loads(data)
-                        # print(act)
-                        if act["why"] == "direct":
-                            self.UNITS[act["where"]].work.append(self.UNITS[act["where"]].work_n+1,act)
+                        for data in how:
+                            act = json.loads(data)
+                            # print(act)
+                            if act["why"] == "direct":
+                                self.UNITS[act["where"]].work.append(self.UNITS[act["where"]].work_n+1,act)
 
-                        self.UNITS[act["where"]].work.append(act)
-                        await asyncio.sleep(1)
+                            self.UNITS[act["where"]].work.append(act)
+                            await asyncio.sleep(1)
 
 
 
-            elif where == "unit_219":
-                if what == "move":
-                    await self.UNITS[where].flag_idle.wait()
-                    await self.UNITS[where].handle_send( json.dumps(msg))
-                    await asyncio.sleep(2)
+                elif where == "unit_219":
+                    if what == "move":
+                        await self.UNITS[where].flag_idle.wait()
+                        await self.UNITS[where].handle_send( json.dumps(msg))
+                        await asyncio.sleep(2)
 
 
-            elif where == "unit_coffee":
-                if what == "make":
-                    if how == "coffee":
-                        await self.UNITS[where].handle_send( json.dumps(msg) )
+                elif where == "unit_coffee":
+                    if what == "make":
+                        if how == "coffee":
+                            await self.UNITS[where].handle_send( json.dumps(msg) )
 
         except Exception as e:
             print( self.name,f"logic 에서 msg : {msg} 처리중에 오류",e )

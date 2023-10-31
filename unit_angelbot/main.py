@@ -254,6 +254,7 @@ class Unit:
 
 if __name__=="__main__":
     print( "unit 프로그램이 시작" )
-    unit = Unit( sys.argv[1], ( sys.argv[2], sys.argv[3] ) )
+    # unit = Unit( sys.argv[1], ( sys.argv[2], sys.argv[3] ) )
+    unit = Unit("unit_219",("192.168.212.189","8000"))
     unit.run()
     print( "unit 프로그램이 종료" )
