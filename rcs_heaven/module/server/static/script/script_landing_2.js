@@ -21,7 +21,7 @@ document.addEventListener('click', function(event) {
 
 
 
-async function moveUnit(x,y) {
+async function moveUnit() {
 
 
 
@@ -58,4 +58,16 @@ async function moveUnit(x,y) {
 
     // console.log(data);
     await f2b_json( JSON.stringify(work) );
+}
+
+
+
+async function resetWork(){
+    target = document.getElementById("lbl_name").innerHTML;
+    console.log("작업 비움을 구현하시오!");
+
+    if( target.trim() === "name" ){
+        console.log("대상이 없음");
+        return;
+    }
 }
