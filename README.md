@@ -4,6 +4,7 @@
 
 ## 결과
 [![스마트 요양원](https://img.youtube.com/vi/PHC6FMckTuY/0.jpg)](https://www.youtube.com/watch?v=PHC6FMckTuY)
+![설명텍스트](./document/concept8.png)
 ![설명텍스트](./document/portrait1.png)
 
 
