@@ -2,7 +2,13 @@
 > 이 프로젝트는 2023 ICT 프로보노 대회용 프로젝트 입니다.
 
 
-## 결과
+## 상태
+* **진행** : 완료됨
+* **기간** : 2023.03.02 ~ 2023.12.7
+* **인원**
+    * 최화 : 팀장, 백앤드, 프론트앤드, 하드웨어, 로봇교시
+    * 김도윤 : 팀원, 프론트앤드, 로봇교시
+* **결과**
 [![스마트 요양원](https://img.youtube.com/vi/PHC6FMckTuY/0.jpg)](https://www.youtube.com/watch?v=PHC6FMckTuY)
 ![설명텍스트](./document/concept8.png)
 ![설명텍스트](./document/portrait1.png)
