@@ -20,6 +20,7 @@
 ## 구조
 ![설명텍스트](./document/concept6.png)
 ![설명텍스트](./document/concept5.png)
+![설명텍스트](./document/concept7.png)
 
 
 ## 환경
